@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔴 BLAZE ADMIN PANEL</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background: #0a0a0a;
+            color: #cc0000;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(204,0,0,0.02) 2px, rgba(204,0,0,0.02) 4px);
+            pointer-events: none; z-index: -1;
+        }
+
+        .login-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.92); display: flex;
+            justify-content: center; align-items: center; z-index: 100;
+        }
+        
+        .login-box {
+            background: rgba(10,10,10,0.98); border: 2px solid #8B0000;
+            padding: 40px; border-radius: 8px; width: 360px;
+            box-shadow: 0 0 40px rgba(204,0,0,0.1);
+        }
+        
+        .login-box h1 {
+            text-align: center; font-size: 1.4rem; margin-bottom: 5px;
+            text-shadow: 0 0 10px #cc0000;
+        }
+        
+        .login-box .sub {
+            text-align: center; font-size: 0.75rem;
+            margin-bottom: 25px; color: rgba(204,0,0,0.4);
+        }
+        
+        .login-box input {
+            width: 100%; padding: 12px; margin: 8px 0;
+            background: rgba(204,0,0,0.05); border: 1px solid #8B0000;
+            color: #cc0000; font-family: 'Courier New', monospace;
+            outline: none; font-size: 0.9rem;
+        }
+        
+        .login-box input:focus { box-shadow: 0 0 15px rgba(204,0,0,0.3); }
+        
+        .login-box button {
+            width: 100%; padding: 12px; margin-top: 15px;
+            background: transparent; border: 2px solid #8B0000;
+            color: #cc0000; font-family: 'Courier New', monospace;
+            font-weight: bold; cursor: pointer; font-size: 1rem;
+        }
+        
+        .login-box button:hover { background: #8B0000; color: #0a0a0a; }
+        
+        .login-error {
+            color: #ff3333; text-align: center; margin: 8px 0;
+            font-size: 0.8rem; display: none;
+        }
+
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid #8B0000; padding-bottom: 12px; margin-bottom: 20px;
+            flex-wrap: wrap; gap: 10px;
+        }
+        
+        .header h1 { font-size: 1.3rem; text-shadow: 0 0 10px #cc0000; }
+        .header .info { font-size: 0.75rem; color: rgba(204,0,0,0.4); }
+        
+        .logout-btn {
+            color: #ff3333; text-decoration: none;
+            border: 1px solid #ff3333; padding: 5px 12px;
+            border-radius: 4px; font-size: 0.8rem; cursor: pointer;
+            background: transparent; font-family: 'Courier New', monospace;
+        }
+        .logout-btn:hover { background: #ff3333; color: #0a0a0a; }
+
+        .stats {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px; margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            border: 1px solid #8B0000; padding: 12px; border-radius: 6px;
+            background: rgba(204,0,0,0.02); text-align: center;
+        }
+        
+        .stat-card .num { font-size: 1.8rem; font-weight: bold; }
+        .stat-card .label { font-size: 0.7rem; color: rgba(204,0,0,0.5); margin-top: 4px; }
+
+        .section {
+            border: 1px solid #8B0000; border-radius: 6px;
+            padding: 18px; margin-bottom: 20px;
+            background: rgba(204,0,0,0.01);
+        }
+        
+        .section h2 {
+            font-size: 1rem; margin-bottom: 12px;
+            border-bottom: 1px solid rgba(204,0,0,0.15);
+            padding-bottom: 8px;
+        }
+
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        th, td {
+            border: 1px solid rgba(204,0,0,0.2); padding: 6px 8px;
+            text-align: left;
+        }
+        th { background: rgba(204,0,0,0.06); font-size: 0.75rem; color: rgba(204,0,0,0.7); }
+        td input {
+            width: 100%; background: rgba(204,0,0,0.05);
+            border: 1px solid rgba(204,0,0,0.25); color: #cc0000;
+            padding: 4px 6px; font-family: 'Courier New', monospace;
+            font-size: 0.75rem; outline: none;
+        }
+        td input:focus { border-color: #cc0000; }
+
+        .btn {
+            background: transparent; border: 1px solid #8B0000;
+            color: #cc0000; padding: 6px 16px; cursor: pointer;
+            font-family: 'Courier New', monospace; font-size: 0.8rem;
+            border-radius: 4px; transition: all 0.2s;
+        }
+        .btn:hover { background: #8B0000; color: #0a0a0a; }
+        .btn-danger { border-color: #ff3333; color: #ff3333; }
+        .btn-danger:hover { background: #ff3333; color: #0a0a0a; }
+        .btn-sm { padding: 3px 8px; font-size: 0.7rem; }
+        .btn-success { border-color: #cc0000; color: #cc0000; }
+        .btn-success:hover { background: #cc0000; color: #0a0a0a; }
+        
+        .flex { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .mt-10 { margin-top: 10px; }
+        .mb-10 { margin-bottom: 10px; }
+        .gap { gap: 10px; }
+
+        .msg {
+            background: rgba(204,0,0,0.08); border: 1px solid #8B0000;
+            padding: 8px; border-radius: 4px; margin-bottom: 12px;
+            text-align: center; font-size: 0.8rem; display: none;
+        }
+        .msg.error { border-color: #ff3333; color: #ff3333; background: rgba(255,51,51,0.08); }
+
+        .log-container { max-height: 350px; overflow-y: auto; border: 1px solid rgba(204,0,0,0.1); border-radius: 4px; }
+
+        .data-actions {
+            display: flex; gap: 10px; flex-wrap: wrap;
+            margin-top: 15px; padding-top: 15px;
+            border-top: 1px solid rgba(204,0,0,0.1);
+        }
+
+        summary { cursor: pointer; font-size: 0.8rem; color: rgba(204,0,0,0.6); }
+        details { margin-top: 12px; }
+
+        .empty-state {
+            text-align: center; padding: 25px;
+            color: rgba(204,0,0,0.3); font-size: 0.85rem;
+        }
+
+        .site-link {
+            display: inline-block; border: 1px solid rgba(204,0,0,0.3);
+            padding: 5px 12px; border-radius: 4px; color: rgba(204,0,0,0.5);
+            text-decoration: none; font-size: 0.75rem;
+        }
+        .site-link:hover { border-color: #cc0000; color: #cc0000; }
+
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            .header h1 { font-size: 1rem; }
+            table { font-size: 0.7rem; }
+            td, th { padding: 4px; }
+            td input { font-size: 0.65rem; padding: 2px 4px; }
+            .stats { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== LOGIN SCREEN ==================== -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-box">
+            <h1>🔴 BLAZE ADMIN</h1>
+            <p class="sub">>> AUTHORIZED PERSONNEL ONLY <<</p>
+            <p class="login-error" id="loginError">❌ Invalid credentials!</p>
+            <input type="text" id="loginUser" placeholder="USERNAME" autocomplete="off">
+            <input type="password" id="loginPass" placeholder="PASSWORD">
+            <button onclick="handleLogin()">▸ LOGIN</button>
+            <p style="text-align:center; margin-top:12px; font-size:0.7rem; color:rgba(204,0,0,0.25);">Default: blazeadmin / BLZ@2026</p>
+        </div>
+    </div>
+
+    <!-- ==================== DASHBOARD ==================== -->
+    <div id="dashboard" style="display:none;">
+        
+        <div class="header">
+            <h1>🔴 BLAZE ADMIN PANEL</h1>
+            <div class="flex">
+                <span class="info">[ <span id="currentTime">--</span> ]</span>
+                <a href="index.html" target="_blank" class="site-link">🌐 VIEW SITE</a>
+                <button class="logout-btn" onclick="handleLogout()">⛔ LOGOUT</button>
+            </div>
+        </div>
+
+        <div class="msg" id="msgBox"></div>
+
+        <!-- STATS -->
+        <div class="stats" id="statsContainer">
+            <div class="stat-card"><div class="num" id="statVisitors">0</div><div class="label">TOTAL VISITORS</div></div>
+            <div class="stat-card"><div class="num" id="statKeys">0</div><div class="label">TOTAL KEYS</div></div>
+            <div class="stat-card"><div class="num" id="statKeysUsed">0</div><div class="label">KEYS USED</div></div>
+            <div class="stat-card"><div class="num" id="statUniqueIPs">0</div><div class="label">UNIQUE IPS</div></div>
+        </div>
+
+        <!-- ===== SECTION 1: CHANNEL LINKS ===== -->
+        <div class="section">
+            <h2>📡 CHANNEL LINKS CONFIG</h2>
+            <p style="font-size:0.7rem; color:rgba(204,0,0,0.4); margin-bottom:10px;">
+                Ye links BLAZE website par show honge. Jo bhi change karenge, woh auto-update hoga.
+            </p>
+            <div class="mb-10">
+                <label style="font-size:0.75rem; color:rgba(204,0,0,0.5);">✈️ TELEGRAM LINK:</label>
+                <input type="url" id="tgLinkInput" style="width:100%; background:rgba(204,0,0,0.05); border:1px solid rgba(204,0,0,0.3); color:#cc0000; padding:8px; font-family:'Courier New',monospace; margin-top:4px;">
+            </div>
+            <div class="mb-10">
+                <label style="font-size:0.75rem; color:rgba(204,0,0,0.5);">▶️ YOUTUBE LINK:</label>
+                <input type="url" id="ytLinkInput" style="width:100%; background:rgba(204,0,0,0.05); border:1px solid rgba(204,0,0,0.3); color:#cc0000; padding:8px; font-family:'Courier New',monospace; margin-top:4px;">
+            </div>
+            <button class="btn" onclick="saveChannels()">💾 SAVE CHANNELS</button>
+        </div>
+
+        <!-- ===== SECTION 2: KEYS MANAGEMENT ===== -->
+        <div class="section">
+            <h2>🔑 FILE KEYS MANAGEMENT</h2>
+            <p style="font-size:0.7rem; color:rgba(204,0,0,0.4); margin-bottom:10px;">
+                Yeh keys BLAZE site ke liye hain. <strong>AXP ADMIN se koi connection nahi hai.</strong>
+            </p>
+            
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="min-width:100px;">🔑 KEY</th>
+                            <th style="min-width:140px;">📄 FILE NAME</th>
+                            <th style="min-width:70px;">📦 SIZE</th>
+                            <th style="min-width:200px;">🔗 FILE URL</th>
+                            <th style="min-width:40px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="keysTableBody"></tbody>
+                </table>
+            </div>
+            
+            <div class="flex mt-10 gap">
+                <button class="btn btn-sm btn-success" onclick="addKeyRow()">➕ ADD NEW KEY</button>
+                <button class="btn" onclick="saveAllKeys()">💾 SAVE ALL KEYS</button>
+            </div>
+        </div>
+
+        <!-- ===== SECTION 3: USER LOGS ===== -->
+        <div class="section">
+            <h2>📊 USER ACTIVITY LOGS</h2>
+            <p style="font-size:0.7rem; color:rgba(204,0,0,0.4); margin-bottom:10px;">
+                BLAZE site se aane wale saare users yahan log hote hain.
+            </p>
+            
+            <div id="logsContainer">
+                <div class="empty-state">No user activity yet.</div>
+            </div>
+            
+            <div class="flex mt-10 gap">
+                <button class="btn btn-danger btn-sm" onclick="clearAllLogs()">🗑 CLEAR ALL LOGS</button>
+            </div>
+
+            <details>
+                <summary>➕ Manual Log Add</summary>
+                <div class="flex mt-10">
+                    <input type="text" id="manualIp" placeholder="IP Address" style="background:rgba(204,0,0,0.05); border:1px solid rgba(204,0,0,0.3); color:#cc0000; padding:5px 8px; font-family:'Courier New',monospace; flex:1;">
+                    <input type="text" id="manualKey" placeholder="Key Used" style="background:rgba(204,0,0,0.05); border:1px solid rgba(204,0,0,0.3); color:#cc0000; padding:5px 8px; font-family:'Courier New',monospace; flex:1;">
+                    <button class="btn btn-sm btn-success" onclick="addManualLog()">➕ ADD</button>
+                </div>
+            </details>
+        </div>
+
+        <!-- ===== SECTION 4: BACKUP & RESTORE ===== -->
+        <div class="section">
+            <h2>💾 BACKUP & RESTORE</h2>
+            <p style="font-size:0.7rem; color:rgba(204,0,0,0.4); margin-bottom:10px;">
+                Saari settings, keys aur logs ka backup/restore.
+            </p>
+            <div class="data-actions">
+                <button class="btn btn-sm" onclick="exportData()">📥 EXPORT DATA</button>
+                <button class="btn btn-sm" onclick="document.getElementById('importFile').click()">📤 IMPORT DATA</button>
+                <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+                <button class="btn btn-sm btn-danger" onclick="resetAllData()">⚠️ RESET ALL</button>
+            </div>
+        </div>
+
+        <div style="text-align:center; margin-top:15px; padding-top:10px; border-top:1px solid rgba(204,0,0,0.08); font-size:0.7rem; color:rgba(204,0,0,0.25);">
+            🔴 BLAZE ADMIN PANEL v1.0 | Made with 🔴 by AXP BLAZE
+        </div>
+
+    </div>
+
+    <script>
+        // ==================== 🔴 AUTH CONFIG 🔴 ====================
+        const ADMIN_CREDENTIALS = {
+            username: 'blazeadmin',
+            password: 'BLZ@2026'
+        };
+
+        // ==================== 🔴 DEFAULT DATA 🔴 ====================
+        // BLAZE ka apna data - completely independent
+        const DEFAULT_DATA = {
+            channels: {
+                telegram: 'https://t.me/+Fb3f7eusvbw0ZDBl',
+                youtube: 'https://youtube.com/@axpsirm?si=i0QSm-0wDn9QQo8H'
+            },
+            keys: [
+                { key: 'BLZ001', name: 'blaze_video1_file.zip', size: '3.2 MB', url: '' },
+                { key: 'BLZ002', name: 'blaze_video2_file.pdf', size: '1.8 MB', url: '' },
+                { key: 'BLZ003', name: 'blaze_video3_file.py', size: '0.5 MB', url: '' },
+                { key: 'BLZ004', name: 'blaze_video4_file.xml', size: '0.2 MB', url: '' },
+                { key: 'BLZ005', name: 'blaze_video5_file.exe', size: '5.1 MB', url: '' },
+                { key: 'BLZ006', name: 'blaze_video6_file.docx', size: '0.9 MB', url: '' },
+                { key: 'BLZ007', name: 'blaze_video7_file.png', size: '2.4 MB', url: '' },
+                { key: 'BLZ008', name: 'blaze_video8_file.rar', size: '4.7 MB', url: '' },
+                { key: 'BLZ009', name: 'blaze_video9_file.apk', size: '6.3 MB', url: '' },
+                { key: 'BLZ010', name: 'blaze_video10_file.dat', size: '0.1 MB', url: '' }
+            ],
+            users: []
+        };
+
+        // ==================== 🔴 DATA MANAGER 🔴 ====================
+        // localStorage key: "blazeAdminData" - AXP ka "axpAdminData" se alag
+        
+        function getData() {
+            try {
+                const saved = localStorage.getItem('blazeAdminData');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (!parsed.channels) parsed.channels = { ...DEFAULT_DATA.channels };
+                    if (!parsed.keys) parsed.keys = [...DEFAULT_DATA.keys];
+                    if (!parsed.users) parsed.users = [];
+                    return parsed;
+                }
+            } catch(e) {}
+            return JSON.parse(JSON.stringify(DEFAULT_DATA));
+        }
+
+        function saveData(data) {
+            localStorage.setItem('blazeAdminData', JSON.stringify(data));
+            try {
+                localStorage.setItem('blazeAdminUpdated', Date.now().toString());
+            } catch(e) {}
+        }
+
+        // ==================== 🔴 LOGIN / LOGOUT 🔴 ====================
+        function handleLogin() {
+            const user = document.getElementById('loginUser').value.trim();
+            const pass = document.getElementById('loginPass').value.trim();
+            const error = document.getElementById('loginError');
+
+            if (user === ADMIN_CREDENTIALS.username && pass === ADMIN_CREDENTIALS.password) {
+                localStorage.setItem('blazeAdminLoggedIn', 'true');
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                initDashboard();
+            } else {
+                error.style.display = 'block';
+                setTimeout(() => { error.style.display = 'none'; }, 3000);
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('blazeAdminLoggedIn');
+            document.getElementById('loginOverlay').style.display = 'flex';
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('loginUser').value = '';
+            document.getElementById('loginPass').value = '';
+        }
+
+        if (localStorage.getItem('blazeAdminLoggedIn') === 'true') {
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            window.addEventListener('DOMContentLoaded', initDashboard);
+        }
+
+        // ==================== 🔴 CLOCK 🔴 ====================
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('currentTime').textContent = now.toLocaleString('en-IN', { 
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit', second: '2-digit',
+                hour12: false 
+            });
+        }
+        setInterval(updateClock, 1000);
+
+        // ==================== 🔴 MESSAGE 🔴 ====================
+        function showMessage(text, isError = false) {
+            const box = document.getElementById('msgBox');
+            box.textContent = text;
+            box.className = 'msg' + (isError ? ' error' : '');
+            box.style.display = 'block';
+            setTimeout(() => { box.style.display = 'none'; }, 3000);
+        }
+
+        // ==================== 🔴 STATS 🔴 ====================
+        function updateStats(data) {
+            document.getElementById('statVisitors').textContent = data.users.length;
+            document.getElementById('statKeys').textContent = data.keys.length;
+            const usedKeys = new Set(data.users.filter(u => u.key).map(u => u.key));
+            document.getElementById('statKeysUsed').textContent = usedKeys.size;
+            const uniqueIPs = new Set(data.users.map(u => u.ip));
+            document.getElementById('statUniqueIPs').textContent = uniqueIPs.size;
+        }
+
+        // ==================== 🔴 CHANNELS 🔴 ====================
+        function loadChannels(data) {
+            document.getElementById('tgLinkInput').value = data.channels.telegram || '';
+            document.getElementById('ytLinkInput').value = data.channels.youtube || '';
+        }
+
+        function saveChannels() {
+            const data = getData();
+            data.channels.telegram = document.getElementById('tgLinkInput').value.trim();
+            data.channels.youtube = document.getElementById('ytLinkInput').value.trim();
+            saveData(data);
+            showMessage('✅ Channel links saved!');
+        }
+
+        // ==================== 🔴 KEYS 🔴 ====================
+        function renderKeys(data) {
+            const tbody = document.getElementById('keysTableBody');
+            tbody.innerHTML = '';
+            data.keys.forEach((k) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><input type="text" class="key-input" value="${escapeHtml(k.key)}" maxlength="20" placeholder="e.g. BLZ011"></td>
+                    <td><input type="text" class="name-input" value="${escapeHtml(k.name)}" placeholder="file_name.zip"></td>
+                    <td><input type="text" class="size-input" value="${escapeHtml(k.size)}" placeholder="e.g. 2.4 MB"></td>
+                    <td><input type="url" class="url-input" value="${escapeHtml(k.url || '')}" placeholder="https://... (optional)"></td>
+                    <td><button class="btn btn-danger btn-sm" onclick="deleteKeyRow(this)">✕</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function addKeyRow() {
+            const tbody = document.getElementById('keysTableBody');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><input type="text" class="key-input" placeholder="BLZ011" maxlength="20"></td>
+                <td><input type="text" class="name-input" placeholder="file_name.zip"></td>
+                <td><input type="text" class="size-input" placeholder="e.g. 1.5 MB"></td>
+                <td><input type="url" class="url-input" placeholder="https://... (optional)"></td>
+                <td><button class="btn btn-danger btn-sm" onclick="deleteKeyRow(this)">✕</button></td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        function deleteKeyRow(btn) {
+            btn.closest('tr').remove();
+        }
+
+        function collectKeysFromTable() {
+            const rows = document.querySelectorAll('#keysTableBody tr');
+            const keys = [];
+            rows.forEach(row => {
+                const key = row.querySelector('.key-input')?.value?.trim().toUpperCase();
+                if (key) {
+                    keys.push({
+                        key: key,
+                        name: row.querySelector('.name-input')?.value?.trim() || 'unknown.bin',
+                        size: row.querySelector('.size-input')?.value?.trim() || '0 MB',
+                        url: row.querySelector('.url-input')?.value?.trim() || ''
+                    });
+                }
+            });
+            return keys;
+        }
+
+        function saveAllKeys() {
+            const data = getData();
+            data.keys = collectKeysFromTable();
+            saveData(data);
+            renderKeys(data);
+            updateStats(data);
+            showMessage('✅ ' + data.keys.length + ' keys saved!');
+        }
+
+        // ==================== 🔴 LOGS 🔴 ====================
+        function renderLogs(data) {
+            const container = document.getElementById('logsContainer');
+            if (data.users.length === 0) {
+                container.innerHTML = '<div class="empty-state">No user activity yet.</div>';
+                return;
+            }
+            const reversed = [...data.users].reverse();
+            let html = `<div class="log-container"><table><thead><tr><th>#</th><th>🌐 IP</th><th>🔑 KEY</th><th>⏱ TIME</th></tr></thead><tbody>`;
+            reversed.forEach((u, i) => {
+                html += `<tr><td>${i+1}</td><td>${escapeHtml(u.ip)}</td><td>${escapeHtml(u.key||'—')}</td><td>${escapeHtml(u.time)}</td></tr>`;
+            });
+            html += '</tbody></table></div>';
+            container.innerHTML = html;
+        }
+
+        function clearAllLogs() {
+            if (!confirm('Clear all user logs?')) return;
+            const data = getData();
+            data.users = [];
+            saveData(data);
+            renderLogs(data);
+            updateStats(data);
+            showMessage('✅ All logs cleared!');
+        }
+
+        function addManualLog() {
+            const ip = document.getElementById('manualIp').value.trim();
+            const key = document.getElementById('manualKey').value.trim().toUpperCase();
+            if (!ip && !key) { showMessage('❌ Enter at least IP or Key', true); return; }
+            const data = getData();
+            data.users.push({ ip: ip || 'manual', key: key || '', time: new Date().toLocaleString('en-IN', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false }) });
+            saveData(data);
+            renderLogs(data);
+            updateStats(data);
+            document.getElementById('manualIp').value = '';
+            document.getElementById('manualKey').value = '';
+            showMessage('✅ Manual log added!');
+        }
+
+        // ==================== 🔴 BACKUP / RESTORE 🔴 ====================
+        function exportData() {
+            const data = getData();
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = 'blaze_backup_' + new Date().toISOString().slice(0,10) + '.json';
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showMessage('✅ Data exported!');
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (!imported.keys || !imported.channels) throw new Error('Invalid format');
+                    if (!confirm('⚠️ Overwrite all data?')) return;
+                    saveData(imported);
+                    refreshAll();
+                    showMessage('✅ Data imported!');
+                } catch(err) { showMessage('❌ Invalid file!', true); }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function resetAllData() {
+            if (!confirm('⚠️ DELETE ALL DATA?') || !confirm('⚠️ FINAL WARNING?')) return;
+            saveData(JSON.parse(JSON.stringify(DEFAULT_DATA)));
+            refreshAll();
+            showMessage('⚠️ Reset to default!');
+        }
+
+        function refreshAll() { const d = getData(); loadChannels(d); renderKeys(d); renderLogs(d); updateStats(d); }
+        function initDashboard() { updateClock(); refreshAll(); }
+        function escapeHtml(t) { if(!t)return ''; const d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && document.getElementById('loginOverlay').style.display !== 'none') handleLogin();
+        });
+    </script>
+
+</body>
+</html>
