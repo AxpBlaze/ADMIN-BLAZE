@@ -547,40 +547,809 @@
             URL.revokeObjectURL(url);
             showMessage('✅ Data exported!');
         }
-
-        function importData(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const imported = JSON.parse(e.target.result);
-                    if (!imported.keys || !imported.channels) throw new Error('Invalid format');
-                    if (!confirm('⚠️ Overwrite all data?')) return;
-                    saveData(imported);
-                    refreshAll();
-                    showMessage('✅ Data imported!');
-                } catch(err) { showMessage('❌ Invalid file!', true); }
-            };
-            reader.readAsText(file);
-            event.target.value = '';
-        }
-
-        function resetAllData() {
-            if (!confirm('⚠️ DELETE ALL DATA?') || !confirm('⚠️ FINAL WARNING?')) return;
-            saveData(JSON.parse(JSON.stringify(DEFAULT_DATA)));
-            refreshAll();
-            showMessage('⚠️ Reset to default!');
-        }
-
-        function refreshAll() { const d = getData(); loadChannels(d); renderKeys(d); renderLogs(d); updateStats(d); }
-        function initDashboard() { updateClock(); refreshAll(); }
-        function escapeHtml(t) { if(!t)return ''; const d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
-
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && document.getElementById('loginOverlay').style.display !== 'none') handleLogin();
-        });
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔥 AXP BLAZE 🔥</title>
+    
+    <!-- 🔴 POPUNDER AD - BACKGROUND MEIN FIRE 🔴 -->
+    <script>
+    (function() {
+        var s = document.createElement('script');
+        s.src = 'https://pl30206122.effectivecpmnetwork.com/32/f1/52/32f152ee06a28904513a0339c0a2f618.js';
+        document.head.appendChild(s);
+    })();
     </script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
 
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #0a0505;
+            color: #ff3333;
+            font-family: 'Share Tech Mono', monospace;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,50,50,0.03) 2px, rgba(255,50,50,0.03) 4px);
+            pointer-events: none; z-index: 0;
+        }
+
+        #matrixCanvas {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0; opacity: 0.12; pointer-events: none;
+        }
+
+        .container {
+            position: relative; z-index: 1;
+            background: rgba(10,5,5,0.95);
+            border: 2px solid #ff3333; border-radius: 8px;
+            padding: 25px; width: 92%; max-width: 500px;
+            margin: 20px auto;
+            box-shadow: 0 0 30px rgba(255,50,50,0.15), inset 0 0 30px rgba(255,50,50,0.05);
+        }
+
+        .glitch {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.8rem; font-weight: 900;
+            text-align: center; color: #ff3333;
+            text-shadow: 0 0 10px #ff3333, 0 0 20px #ff3333;
+            animation: glitch 1.5s infinite;
+            position: relative; margin-bottom: 8px;
+        }
+
+        @keyframes glitch {
+            0%,100% { transform: translate(0); }
+            20% { transform: translate(-2px,2px); }
+            40% { transform: translate(2px,-2px); }
+            60% { transform: translate(-1px,-1px); }
+            80% { transform: translate(1px,1px); }
+        }
+
+        .glitch::before, .glitch::after {
+            content: attr(data-text); position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%; opacity: 0.6;
+        }
+
+        .glitch::before {
+            color: #ff0000; animation: glitch-shift 0.3s infinite;
+            clip-path: polygon(0 0, 100% 0, 100% 45%, 0 45%);
+            transform: translate(-2px,-2px);
+        }
+
+        .glitch::after {
+            color: #ff6666; animation: glitch-shift 0.3s infinite reverse;
+            clip-path: polygon(0 60%, 100% 60%, 100% 100%, 0 100%);
+            transform: translate(2px,2px);
+        }
+
+        @keyframes glitch-shift {
+            0% { transform: translate(0); }
+            50% { transform: translate(3px,-1px); }
+        }
+
+        .typing-sub {
+            font-family: 'Share Tech Mono', monospace; color: #cc2929;
+            text-align: center; font-size: 0.85rem; margin-bottom: 15px;
+            border-right: 2px solid #ff3333;
+            white-space: nowrap; overflow: hidden; width: 0;
+            animation: typing 2.5s steps(22) forwards, blink 0.8s infinite;
+        }
+
+        @keyframes typing { to { width: 22ch; } }
+        @keyframes blink { 50% { border-color: transparent; } }
+
+        .page { display: none; animation: fadeIn 0.5s ease; }
+        .page.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .scanline-box {
+            border: 1px solid #ff3333; padding: 15px; border-radius: 4px;
+            position: relative; margin: 12px 0; background: rgba(255,50,50,0.02);
+        }
+
+        .scanline-box::after {
+            content: ''; position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,50,50,0.03) 3px, rgba(255,50,50,0.03) 6px);
+            pointer-events: none;
+        }
+
+        .hacker-btn {
+            background: transparent; color: #ff3333;
+            border: 2px solid #ff3333; padding: 10px 25px;
+            font-family: 'Orbitron', monospace; font-size: 0.9rem;
+            font-weight: 700; cursor: pointer; text-transform: uppercase;
+            letter-spacing: 2px; transition: all 0.3s ease;
+            width: 100%; margin-top: 8px;
+        }
+
+        .hacker-btn:hover {
+            background: #ff3333; color: #0a0505;
+            box-shadow: 0 0 20px rgba(255,50,50,0.5); transform: scale(1.02);
+        }
+
+        .hacker-btn:disabled {
+            opacity: 0.4; cursor: not-allowed; transform: none;
+        }
+
+        .hacker-btn:disabled:hover {
+            background: transparent; color: #ff3333; box-shadow: none;
+        }
+
+        .channel-link {
+            display: block; padding: 10px; margin: 8px 0;
+            background: rgba(255,50,50,0.05);
+            border: 1px solid #ff3333; border-radius: 4px;
+            color: #ff3333; text-decoration: none;
+            font-size: 0.9rem; text-align: center; transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .channel-link:hover {
+            background: rgba(255,50,50,0.15);
+            box-shadow: 0 0 15px rgba(255,50,50,0.2);
+        }
+
+        .channel-status {
+            float: right; font-size: 0.75rem;
+            padding: 2px 6px; border: 1px solid #662222;
+            color: #662222; border-radius: 3px;
+        }
+
+        .channel-status.verified {
+            border-color: #ff3333; color: #ff3333;
+        }
+
+        .hacker-input {
+            width: 100%; padding: 10px 12px;
+            background: rgba(255,50,50,0.05);
+            border: 2px solid #ff3333; border-radius: 4px;
+            color: #ff3333; font-family: 'Share Tech Mono', monospace;
+            font-size: 1rem; letter-spacing: 3px;
+            text-align: center; outline: none;
+        }
+
+        .hacker-input:focus {
+            box-shadow: 0 0 20px rgba(255,50,50,0.3);
+            background: rgba(255,50,50,0.1);
+        }
+
+        .hacker-input::placeholder { color: rgba(255,50,50,0.3); letter-spacing: 1px; }
+
+        .progress-container {
+            display: none; margin: 12px 0;
+        }
+
+        .progress-bar {
+            width: 100%; height: 20px;
+            background: rgba(255,50,50,0.1);
+            border: 1px solid #ff3333; border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%; width: 0%;
+            background: linear-gradient(90deg, #ff3333, #ff0000);
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px rgba(255,50,50,0.5);
+        }
+
+        .progress-text {
+            text-align: center; font-size: 0.8rem;
+            color: #ff3333; margin-top: 5px;
+        }
+
+        .key-success { display: none; text-align: center; margin-top: 8px; }
+        .key-success p { font-size: 0.75rem; margin: 2px 0; color: #ff6666; }
+        .key-success .file-name { color: #ff3333; font-size: 1rem; font-weight: bold; }
+
+        .key-error {
+            display: none; text-align: center; color: #ff0000;
+            font-size: 0.85rem; margin-top: 8px;
+            text-shadow: 0 0 10px rgba(255,0,0,0.5);
+        }
+
+        .status-bar {
+            display: flex; justify-content: space-between;
+            font-size: 0.7rem; color: rgba(255,50,50,0.4);
+            margin-bottom: 10px; padding-bottom: 5px;
+            border-bottom: 1px solid rgba(255,50,50,0.1);
+        }
+
+        .blink { animation: blink 1s infinite; }
+        @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* 🔥 AD BANNER - SIMPLE 🔥 */
+        .ad-banner {
+            display: none;
+            border: 1px solid #ff3333;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            background: rgba(255,50,50,0.03);
+            text-align: center;
+        }
+
+        .ad-banner .ad-label {
+            font-size: 0.7rem;
+            color: rgba(255,50,50,0.4);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+
+        .ad-banner .ad-timer {
+            font-family: 'Orbitron', monospace;
+            font-size: 2.2rem;
+            color: #ff3333;
+            text-shadow: 0 0 15px rgba(255,50,50,0.3);
+        }
+
+        .ad-banner .ad-sub {
+            font-size: 0.7rem;
+            color: rgba(255,50,50,0.5);
+            margin-top: 3px;
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="matrixCanvas"></canvas>
+
+<div class="container">
+    
+    <div class="status-bar">
+        <span>🔥 BLAZE://access</span>
+        <span class="blink">● LIVE</span>
+    </div>
+
+    <!-- PAGE 1: WELCOME -->
+    <div id="page1" class="page active">
+        <div class="glitch" data-text="🔥 AXP BLAZE" style="font-size:1.8rem;">🔥 AXP BLAZE</div>
+        <p class="typing-sub">>> unauthorized access detected <<</p>
+        <div class="scanline-box">
+            <p style="text-align:center; font-size:0.8rem; color:rgba(255,50,50,0.7);">
+                WELCOME TO BLAZE NETWORK<br><br>
+                <span style="font-size:0.65rem; color:rgba(255,50,50,0.4);">
+                ◆ BLAZE ver 2.0 ◆<br>
+                ◆ SOURCE: ENCRYPTED ◆
+                </span>
+            </p>
+        </div>
+        <button class="hacker-btn" onclick="goToPage(2)">▸ INITIALIZE ACCESS</button>
+    </div>
+
+    <!-- PAGE 2: CHANNELS -->
+    <div id="page2" class="page">
+        <div class="glitch" data-text="🔥 CHANNELS" style="font-size:1.5rem;">🔥 CHANNELS</div>
+        <p style="text-align:center; font-size:0.75rem; margin-bottom:6px; color:rgba(255,50,50,0.6);">>> VERIFY YOUR IDENTITY <<</p>
+        <div class="scanline-box">
+            <a class="channel-link" onclick="markVisited('tg')">
+                🔴 TELEGRAM <span class="channel-status" id="tgStatus">NOT JOINED</span>
+            </a>
+            <a class="channel-link" onclick="markVisited('yt')">
+                🔴 YOUTUBE <span class="channel-status" id="ytStatus">NOT SUBSCRIBED</span>
+            </a>
+        </div>
+        
+        <!-- 🔥 AD BANNER PAGE 2 🔥 -->
+        <div class="ad-banner" id="adBanner2">
+            <div class="ad-label">🔴 SPONSORED</div>
+            <div class="ad-timer" id="adTimer2">5</div>
+            <div class="ad-sub">seconds</div>
+        </div>
+        
+        <button class="hacker-btn" id="continueBtn2" onclick="onContinue(2, 3)" disabled>⛔ JOIN TO UNLOCK</button>
+    </div>
+
+    <!-- PAGE 3: KEY -->
+    <div id="page3" class="page">
+        <div class="glitch" data-text="🔥 ACCESS KEY" style="font-size:1.5rem;">🔥 ACCESS KEY</div>
+        <p style="text-align:center; font-size:0.75rem; margin-bottom:6px; color:rgba(255,50,50,0.6);">>> ENTER BLAZE AUTHORIZATION KEY <<</p>
+        <div class="scanline-box">
+            <input type="text" class="hacker-input" id="fileKeyInput" placeholder="BLZXXX" maxlength="6" oninput="checkFileKey()" autocomplete="off">
+            <div class="key-error" id="keyError">✖ INVALID KEY - ACCESS DENIED</div>
+            <div class="key-success" id="keySuccess">
+                <p class="file-name" id="displayFileName">🔥 protected_file.bin</p>
+                <p id="displayFileSize">SIZE: UNKNOWN</p>
+                <p id="displayFileKey">KEY: ---</p>
+            </div>
+        </div>
+        
+        <!-- 🔥 AD BANNER PAGE 3 🔥 -->
+        <div class="ad-banner" id="adBanner3">
+            <div class="ad-label">🔴 SPONSORED</div>
+            <div class="ad-timer" id="adTimer3">5</div>
+            <div class="ad-sub">seconds</div>
+        </div>
+        
+        <button class="hacker-btn" id="continueBtn3" onclick="onContinue(3, 4)" disabled>⛔ ENTER KEY FIRST</button>
+    </div>
+
+    <!-- PAGE 4: DOWNLOAD -->
+    <div id="page4" class="page">
+        <div class="glitch" data-text="🔥 DOWNLOAD" style="font-size:1.5rem;">🔥 DOWNLOAD</div>
+        <p style="text-align:center; font-size:0.75rem; margin-bottom:6px; color:rgba(255,50,50,0.6);">>> SECURE DOWNLOAD INITIATED <<</p>
+        <div class="scanline-box">
+            <p style="font-size:0.85rem; text-align:center;" id="downloadFileName">UNKNOWN</p>
+            <p style="font-size:0.7rem; text-align:center; color:rgba(255,50,50,0.5);" id="downloadFileInfo">BLAZE://secure/drop/</p>
+        </div>
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+            <div class="progress-text" id="progressText">[ INITIALIZING... ]</div>
+        </div>
+        
+        <!-- 🔥 AD BANNER PAGE 4 🔥 -->
+        <div class="ad-banner" id="adBanner4">
+            <div class="ad-label">🔴 SPONSORED</div>
+            <div class="ad-timer" id="adTimer4">5</div>
+            <div class="ad-sub">seconds</div>
+        </div>
+        
+        <button class="hacker-btn" id="downloadBtn" onclick="onDownload()">⬇ DOWNLOAD NOW</button>
+    </div>
+
+    <!-- PAGE 5: THANKS -->
+    <div id="page5" class="page">
+        <div class="glitch" data-text="🔥 THANKS" style="font-size:1.5rem;">🔥 THANKS</div>
+        <p style="text-align:center; font-size:0.75rem; margin-bottom:10px; color:rgba(255,50,50,0.6);">>> MISSION COMPLETE <<</p>
+        <div class="scanline-box" style="text-align:center;">
+            <p style="font-size:1rem; margin-bottom:8px;">🔥 THANKS FOR COMING 🔥</p>
+            <p style="font-size:0.75rem; color:rgba(255,50,50,0.6);">[ blaze://network/exit ]</p>
+            <p style="font-size:0.7rem; margin-top:8px; color:rgba(255,50,50,0.3);">◆ Made with 🔥 by AXP BLAZE ◆</p>
+        </div>
+        <button class="hacker-btn" onclick="fullReset()">⟳ RESTART</button>
+    </div>
+
+</div>
+
+<script>
+    // ==================== MATRIX RAIN ====================
+    const canvas = document.getElementById('matrixCanvas');
+    const ctx = canvas.getContext('2d');
+    let matrixWidth, matrixHeight, columns, drops;
+
+    function initMatrix() {
+        matrixWidth = canvas.width = window.innerWidth;
+        matrixHeight = canvas.height = window.innerHeight;
+        columns = Math.floor(matrixWidth / 14);
+        drops = Array(columns).fill(1);
+    }
+    initMatrix();
+    window.addEventListener('resize', initMatrix);
+
+    const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789BLAZE';
+
+    function drawMatrix() {
+        ctx.fillStyle = 'rgba(10,5,5,0.05)';
+        ctx.fillRect(0, 0, matrixWidth, matrixHeight);
+        ctx.fillStyle = '#ff3333';
+        ctx.font = '14px monospace';
+        for (let i = 0; i < drops.length; i++) {
+            const char = chars[Math.floor(Math.random() * chars.length)];
+            ctx.fillText(char, i * 14, drops[i] * 14);
+            if (drops[i] * 14 > matrixHeight && Math.random() > 0.975) drops[i] = 0;
+            drops[i]++;
+        }
+    }
+    setInterval(drawMatrix, 50);
+
+    // ==================== DATA ====================
+    function loadBlazeData() {
+        try {
+            const saved = localStorage.getItem('blazeAdminData');
+            if (saved) return JSON.parse(saved);
+        } catch(e) {}
+        return null;
+    }
+
+    const DEFAULT_DATABASE = {
+        "BLZ001": { name: "blaze_file_1.zip",  size: "3.2 MB", url: "", content: "AXP BLAZE | FILE 001" },
+        "BLZ002": { name: "blaze_file_2.pdf",  size: "1.8 MB", url: "", content: "AXP BLAZE | FILE 002" },
+        "BLZ003": { name: "blaze_file_3.py",   size: "0.5 MB", url: "", content: "AXP BLAZE | FILE 003" },
+        "BLZ004": { name: "blaze_file_4.xml",  size: "0.2 MB", url: "", content: "AXP BLAZE | FILE 004" },
+        "BLZ005": { name: "blaze_file_5.exe",  size: "5.1 MB", url: "", content: "AXP BLAZE | FILE 005" },
+        "BLZ006": { name: "blaze_file_6.docx", size: "0.9 MB", url: "", content: "AXP BLAZE | FILE 006" },
+        "BLZ007": { name: "blaze_file_7.png",  size: "2.4 MB", url: "", content: "AXP BLAZE | FILE 007" },
+        "BLZ008": { name: "blaze_file_8.rar",  size: "4.7 MB", url: "", content: "AXP BLAZE | FILE 008" },
+        "BLZ009": { name: "blaze_file_9.apk",  size: "6.3 MB", url: "", content: "AXP BLAZE | FILE 009" },
+        "BLZ010": { name: "blaze_file_10.dat", size: "0.1 MB", url: "", content: "AXP BLAZE | FILE 010" }
+    };
+
+    let FILE_DATABASE = {};
+
+    function buildFileDatabase() {
+        FILE_DATABASE = {};
+        const blazeData = loadBlazeData();
+        if (blazeData && blazeData.keys && blazeData.keys.length > 0) {
+            blazeData.keys.forEach(k => {
+                if (k.key) {
+                    FILE_DATABASE[k.key] = {
+                        name: k.name || 'unknown.bin',
+                        size: k.size || '0 MB',
+                        url: k.url || '',
+                        content: 'AXP BLAZE | ' + (k.name || 'unknown')
+                    };
+                }
+            });
+        } else {
+            Object.assign(FILE_DATABASE, DEFAULT_DATABASE);
+        }
+    }
+
+    let CHANNEL_LINKS = {
+        telegram: 'https://t.me/+Fb3f7eusvbw0ZDBl',
+        youtube: 'https://youtube.com/@axpsirm?si=i0QSm-0wDn9QQo8H'
+    };
+
+    function loadChannelLinks() {
+        const blazeData = loadBlazeData();
+        if (blazeData && blazeData.channels) {
+            CHANNEL_LINKS.telegram = blazeData.channels.telegram || CHANNEL_LINKS.telegram;
+            CHANNEL_LINKS.youtube = blazeData.channels.youtube || CHANNEL_LINKS.youtube;
+        }
+    }
+
+    // ==================== STATE ====================
+    function saveState() {
+        const state = {
+            tgVisited: tgVisited,
+            ytVisited: ytVisited,
+            currentPage: currentPage,
+            enteredKey: document.getElementById('fileKeyInput') ? document.getElementById('fileKeyInput').value : '',
+            keyAccepted: keyAccepted,
+            acceptedKey: acceptedKey
+        };
+        try { localStorage.setItem('blazeState', JSON.stringify(state)); } catch(e) {}
+    }
+
+    function loadState() {
+        try {
+            const saved = localStorage.getItem('blazeState');
+            if (!saved) return false;
+            const state = JSON.parse(saved);
+            tgVisited = state.tgVisited || false;
+            ytVisited = state.ytVisited || false;
+            keyAccepted = state.keyAccepted || false;
+            acceptedKey = state.acceptedKey || null;
+            if (tgVisited) {
+                document.getElementById('tgStatus').textContent = '✅ JOINED';
+                document.getElementById('tgStatus').classList.add('verified');
+            }
+            if (ytVisited) {
+                document.getElementById('ytStatus').textContent = '✅ SUBSCRIBED';
+                document.getElementById('ytStatus').classList.add('verified');
+            }
+            checkChannels();
+            if (state.enteredKey && document.getElementById('fileKeyInput')) {
+                document.getElementById('fileKeyInput').value = state.enteredKey;
+                if (state.keyAccepted && state.acceptedKey && FILE_DATABASE[state.acceptedKey]) {
+                    currentFile = FILE_DATABASE[state.acceptedKey];
+                    document.getElementById('displayFileName').textContent = currentFile.name;
+                    document.getElementById('displayFileSize').textContent = 'SIZE: ' + currentFile.size;
+                    document.getElementById('displayFileKey').textContent = 'KEY: ' + state.acceptedKey;
+                    document.getElementById('keySuccess').style.display = 'block';
+                    document.getElementById('continueBtn3').disabled = false;
+                    document.getElementById('continueBtn3').textContent = '▸ CONTINUE';
+                }
+            }
+            return state;
+        } catch(e) { return false; }
+    }
+
+    // ==================== NAVIGATION ====================
+    let currentPage = 1;
+    let tgVisited = false;
+    let ytVisited = false;
+    let keyAccepted = false;
+    let acceptedKey = null;
+    let currentFile = null;
+
+    function goToPage(pageNum) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        const target = document.getElementById('page' + pageNum);
+        if (target) {
+            target.classList.add('active');
+            currentPage = pageNum;
+            if (pageNum === 4 && currentFile) {
+                document.getElementById('downloadFileName').textContent = currentFile.name;
+                document.getElementById('downloadFileInfo').textContent = 'SIZE: ' + currentFile.size + ' | KEY: ' + acceptedKey;
+            }
+            saveState();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+
+    // ==================== 🔥 AD SYSTEM - SIMPLE 🔥 ====================
+    let timers = {};
+    let counts = {};
+    let ready = {};
+
+    function startAdBanner(page) {
+        const banner = document.getElementById('adBanner' + page);
+        const timer = document.getElementById('adTimer' + page);
+        const btnMap = {2: 'continueBtn2', 3: 'continueBtn3', 4: 'downloadBtn'};
+        const btn = document.getElementById(btnMap[page]);
+        
+        if (timers[page]) clearInterval(timers[page]);
+        
+        counts[page] = 5;
+        ready[page] = false;
+        banner.style.display = 'block';
+        timer.textContent = '5';
+        btn.disabled = true;
+        btn.textContent = '⏳ ' + counts[page] + 's';
+        
+        timers[page] = setInterval(function() {
+            counts[page]--;
+            timer.textContent = counts[page];
+            btn.textContent = '⏳ ' + counts[page] + 's';
+            
+            if (counts[page] <= 0) {
+                clearInterval(timers[page]);
+                timer.textContent = '0';
+                btn.textContent = (page === 4) ? '⬇ DOWNLOAD NOW' : '▸ CONTINUE';
+                btn.disabled = false;
+                ready[page] = true;
+            }
+        }, 1000);
+    }
+
+    function onContinue(fromPage, toPage) {
+        if (!ready[fromPage]) return;
+        ready[fromPage] = false;
+        document.getElementById('adBanner' + fromPage).style.display = 'none';
+        
+        // 🔥 FIRE AD 🔥
+        fireAd();
+        
+        goToPage(toPage);
+    }
+
+    function onDownload() {
+        if (!ready[4]) return;
+        if (!currentFile) { alert('ERROR: No file selected!'); return; }
+        
+        ready[4] = false;
+        document.getElementById('adBanner4').style.display = 'none';
+        
+        // 🔥 FIRE AD 🔥
+        fireAd();
+        
+        startDownload();
+    }
+
+    function fireAd() {
+        var s = document.createElement('script');
+        s.src = 'https://pl30206122.effectivecpmnetwork.com/32/f1/52/32f152ee06a28904513a0339c0a2f618.js';
+        document.body.appendChild(s);
+        
+        try {
+            var w = window.open('', '_blank');
+            if (w) {
+                w.document.write('<html><body><script src="https://pl30206122.effectivecpmnetwork.com/32/f1/52/32f152ee06a28904513a0339c0a2f618.js"><\/script></body></html>');
+                w.document.close();
+            }
+        } catch(e) {}
+    }
+
+    // ==================== CHANNELS ====================
+    function markVisited(channel) {
+        if (channel === 'tg') {
+            window.open(CHANNEL_LINKS.telegram, '_blank');
+            tgVisited = true;
+            document.getElementById('tgStatus').textContent = '✅ JOINED';
+            document.getElementById('tgStatus').classList.add('verified');
+            saveState();
+            checkChannels();
+        } else if (channel === 'yt') {
+            window.open(CHANNEL_LINKS.youtube, '_blank');
+            ytVisited = true;
+            document.getElementById('ytStatus').textContent = '✅ SUBSCRIBED';
+            document.getElementById('ytStatus').classList.add('verified');
+            saveState();
+            checkChannels();
+        }
+    }
+
+    function checkChannels() {
+        const btn = document.getElementById('continueBtn2');
+        if (tgVisited && ytVisited) {
+            btn.disabled = false;
+            btn.textContent = '▸ CONTINUE';
+            startAdBanner(2);
+        } else {
+            btn.disabled = true;
+            btn.textContent = '⛔ JOIN TO UNLOCK';
+        }
+    }
+
+    // ==================== KEY CHECK ====================
+    function checkFileKey() {
+        const input = document.getElementById('fileKeyInput');
+        const error = document.getElementById('keyError');
+        const success = document.getElementById('keySuccess');
+        const btn = document.getElementById('continueBtn3');
+        const key = input.value.trim().toUpperCase();
+
+        if (key.length === 0) {
+            error.style.display = 'none';
+            success.style.display = 'none';
+            btn.disabled = true;
+            btn.textContent = '⛔ ENTER KEY FIRST';
+            keyAccepted = false;
+            acceptedKey = null;
+            currentFile = null;
+            saveState();
+            return;
+        }
+
+        if (FILE_DATABASE[key]) {
+            error.style.display = 'none';
+            success.style.display = 'block';
+            btn.disabled = false;
+            btn.textContent = '▸ CONTINUE';
+            keyAccepted = true;
+            acceptedKey = key;
+            currentFile = FILE_DATABASE[key];
+            document.getElementById('displayFileName').textContent = currentFile.name;
+            document.getElementById('displayFileSize').textContent = 'SIZE: ' + currentFile.size;
+            document.getElementById('displayFileKey').textContent = 'KEY: ' + key;
+            saveState();
+            startAdBanner(3);
+        } else {
+            error.style.display = 'block';
+            success.style.display = 'none';
+            btn.disabled = true;
+            btn.textContent = '⛔ INVALID KEY';
+            keyAccepted = false;
+            acceptedKey = null;
+            currentFile = null;
+            document.getElementById('displayFileName').textContent = '🔥 protected_file.bin';
+            document.getElementById('displayFileSize').textContent = 'SIZE: UNKNOWN';
+            document.getElementById('displayFileKey').textContent = 'KEY: ---';
+            saveState();
+        }
+    }
+
+    // ==================== DOWNLOAD ====================
+    function startDownload() {
+        if (!currentFile) return;
+        
+        const progressContainer = document.getElementById('progressContainer');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+
+        progressContainer.style.display = 'block';
+        let progress = 0;
+
+        const interval = setInterval(() => {
+            progress += Math.random() * 15 + 5;
+            if (progress > 100) progress = 100;
+            progressFill.style.width = progress + '%';
+            progressText.textContent = '[ DECRYPTING... ' + Math.floor(progress) + '% ]';
+
+            if (progress >= 100) {
+                clearInterval(interval);
+                progressText.textContent = '[ ✅ DOWNLOAD COMPLETE ]';
+                setTimeout(() => { performDownload(); }, 500);
+            }
+        }, 250);
+    }
+
+    function performDownload() {
+        if (!currentFile) return;
+        if (currentFile.url) {
+            var a = document.createElement('a');
+            a.href = currentFile.url;
+            a.download = currentFile.name;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        } else {
+            var blob = new Blob([currentFile.content], { type: 'application/octet-stream' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = currentFile.name;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        setTimeout(() => { goToPage(5); }, 500);
+    }
+
+    // ==================== RESET ====================
+    function fullReset() {
+        localStorage.removeItem('blazeState');
+        tgVisited = false; ytVisited = false;
+        keyAccepted = false; acceptedKey = null; currentFile = null;
+        
+        document.getElementById('tgStatus').textContent = 'NOT JOINED';
+        document.getElementById('tgStatus').classList.remove('verified');
+        document.getElementById('ytStatus').textContent = 'NOT SUBSCRIBED';
+        document.getElementById('ytStatus').classList.remove('verified');
+        
+        var input = document.getElementById('fileKeyInput');
+        if (input) input.value = '';
+        
+        document.getElementById('keyError').style.display = 'none';
+        document.getElementById('keySuccess').style.display = 'none';
+        
+        document.getElementById('continueBtn2').disabled = true;
+        document.getElementById('continueBtn2').textContent = '⛔ JOIN TO UNLOCK';
+        document.getElementById('continueBtn3').disabled = true;
+        document.getElementById('continueBtn3').textContent = '⛔ ENTER KEY FIRST';
+        document.getElementById('downloadBtn').disabled = false;
+        document.getElementById('downloadBtn').textContent = '⬇ DOWNLOAD NOW';
+        document.getElementById('progressContainer').style.display = 'none';
+        document.getElementById('progressFill').style.width = '0%';
+        
+        document.getElementById('displayFileName').textContent = '🔥 protected_file.bin';
+        document.getElementById('displayFileSize').textContent = 'SIZE: UNKNOWN';
+        document.getElementById('displayFileKey').textContent = 'KEY: ---';
+        document.getElementById('downloadFileName').textContent = 'UNKNOWN';
+        document.getElementById('downloadFileInfo').textContent = 'BLAZE://secure/drop/';
+        
+        document.querySelectorAll('.ad-banner').forEach(b => b.style.display = 'none');
+        
+        for (var p in timers) { clearInterval(timers[p]); ready[p] = false; counts[p] = 5; }
+        
+        goToPage(1);
+    }
+
+    // ==================== INIT ====================
+    window.addEventListener('DOMContentLoaded', function() {
+        buildFileDatabase();
+        loadChannelLinks();
+        
+        tgVisited = false; ytVisited = false;
+        keyAccepted = false; acceptedKey = null; currentFile = null;
+        
+        document.getElementById('tgStatus').textContent = 'NOT JOINED';
+        document.getElementById('tgStatus').classList.remove('verified');
+        document.getElementById('ytStatus').textContent = 'NOT SUBSCRIBED';
+        document.getElementById('ytStatus').classList.remove('verified');
+        document.getElementById('continueBtn2').disabled = true;
+        document.getElementById('continueBtn2').textContent = '⛔ JOIN TO UNLOCK';
+        document.getElementById('continueBtn3').disabled = true;
+        document.getElementById('continueBtn3').textContent = '⛔ ENTER KEY FIRST';
+        document.getElementById('downloadBtn').disabled = false;
+        document.getElementById('downloadBtn').textContent = '⬇ DOWNLOAD NOW';
+        document.getElementById('progressContainer').style.display = 'none';
+        document.getElementById('displayFileName').textContent = '🔥 protected_file.bin';
+        document.getElementById('displayFileSize').textContent = 'SIZE: UNKNOWN';
+        document.getElementById('displayFileKey').textContent = 'KEY: ---';
+        document.getElementById('downloadFileName').textContent = 'UNKNOWN';
+        document.getElementById('downloadFileInfo').textContent = 'BLAZE://secure/drop/';
+        
+        document.querySelectorAll('.ad-banner').forEach(b => b.style.display = 'none');
+        
+        var state = loadState();
+        if (state && state.currentPage && state.currentPage > 1) {
+            goToPage(state.currentPage);
+        } else {
+            goToPage(1);
+        }
+    });
+</script>
 </body>
 </html>
