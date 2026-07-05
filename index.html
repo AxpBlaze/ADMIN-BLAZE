@@ -1,576 +1,17 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔴 BLAZE ADMIN PANEL</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            background: #0a0a0a;
-            color: #cc0000;
-            font-family: 'Courier New', monospace;
-            padding: 20px;
-            min-height: 100vh;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(204,0,0,0.02) 2px, rgba(204,0,0,0.02) 4px);
-            pointer-events: none; z-index: -1;
-        }
-
-        .login-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.92); display: flex;
-            justify-content: center; align-items: center; z-index: 100;
-        }
-        
-        .login-box {
-            background: rgba(10,10,10,0.98); border: 2px solid #8B0000;
-            padding: 40px; border-radius: 8px; width: 360px;
-            box-shadow: 0 0 40px rgba(204,0,0,0.1);
-        }
-        
-        .login-box h1 {
-            text-align: center; font-size: 1.4rem; margin-bottom: 5px;
-            text-shadow: 0 0 10px #cc0000;
-        }
-        
-        .login-box .sub {
-            text-align: center; font-size: 0.75rem;
-            margin-bottom: 25px; color: rgba(204,0,0,0.4);
-        }
-        
-        .login-box input {
-            width: 100%; padding: 12px; margin: 8px 0;
-            background: rgba(204,0,0,0.05); border: 1px solid #8B0000;
-            color: #cc0000; font-family: 'Courier New', monospace;
-            outline: none; font-size: 0.9rem;
-        }
-        
-        .login-box input:focus { box-shadow: 0 0 15px rgba(204,0,0,0.3); }
-        
-        .login-box button {
-            width: 100%; padding: 12px; margin-top: 15px;
-            background: transparent; border: 2px solid #8B0000;
-            color: #cc0000; font-family: 'Courier New', monospace;
-            font-weight: bold; cursor: pointer; font-size: 1rem;
-        }
-        
-        .login-box button:hover { background: #8B0000; color: #0a0a0a; }
-        
-        .login-error {
-            color: #ff3333; text-align: center; margin: 8px 0;
-            font-size: 0.8rem; display: none;
-        }
-
-        .header {
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 2px solid #8B0000; padding-bottom: 12px; margin-bottom: 20px;
-            flex-wrap: wrap; gap: 10px;
-        }
-        
-        .header h1 { font-size: 1.3rem; text-shadow: 0 0 10px #cc0000; }
-        .header .info { font-size: 0.75rem; color: rgba(204,0,0,0.4); }
-        
-        .logout-btn {
-            color: #ff3333; text-decoration: none;
-            border: 1px solid #ff3333; padding: 5px 12px;
-            border-radius: 4px; font-size: 0.8rem; cursor: pointer;
-            background: transparent; font-family: 'Courier New', monospace;
-        }
-        .logout-btn:hover { background: #ff3333; color: #0a0a0a; }
-
-        .stats {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 12px; margin-bottom: 20px;
-        }
-        
-        .stat-card {
-            border: 1px solid #8B0000; padding: 12px; border-radius: 6px;
-            background: rgba(204,0,0,0.02); text-align: center;
-        }
-        
-        .stat-card .num { font-size: 1.8rem; font-weight: bold; }
-        .stat-card .label { font-size: 0.7rem; color: rgba(204,0,0,0.5); margin-top: 4px; }
-
-        .section {
-            border: 1px solid #8B0000; border-radius: 6px;
-            padding: 18px; margin-bottom: 20px;
-            background: rgba(204,0,0,0.01);
-        }
-        
-        .section h2 {
-            font-size: 1rem; margin-bottom: 12px;
-            border-bottom: 1px solid rgba(204,0,0,0.15);
-            padding-bottom: 8px;
-        }
-
-        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
-        th, td {
-            border: 1px solid rgba(204,0,0,0.2); padding: 6px 8px;
-            text-align: left;
-        }
-        th { background: rgba(204,0,0,0.06); font-size: 0.75rem; color: rgba(204,0,0,0.7); }
-        td input {
-            width: 100%; background: rgba(204,0,0,0.05);
-            border: 1px solid rgba(204,0,0,0.25); color: #cc0000;
-            padding: 4px 6px; font-family: 'Courier New', monospace;
-            font-size: 0.75rem; outline: none;
-        }
-        td input:focus { border-color: #cc0000; }
-
-        .btn {
-            background: transparent; border: 1px solid #8B0000;
-            color: #cc0000; padding: 6px 16px; cursor: pointer;
-            font-family: 'Courier New', monospace; font-size: 0.8rem;
-            border-radius: 4px; transition: all 0.2s;
-        }
-        .btn:hover { background: #8B0000; color: #0a0a0a; }
-        .btn-danger { border-color: #ff3333; color: #ff3333; }
-        .btn-danger:hover { background: #ff3333; color: #0a0a0a; }
-        .btn-sm { padding: 3px 8px; font-size: 0.7rem; }
-        .btn-success { border-color: #cc0000; color: #cc0000; }
-        .btn-success:hover { background: #cc0000; color: #0a0a0a; }
-        
-        .flex { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-        .mt-10 { margin-top: 10px; }
-        .mb-10 { margin-bottom: 10px; }
-        .gap { gap: 10px; }
-
-        .msg {
-            background: rgba(204,0,0,0.08); border: 1px solid #8B0000;
-            padding: 8px; border-radius: 4px; margin-bottom: 12px;
-            text-align: center; font-size: 0.8rem; display: none;
-        }
-        .msg.error { border-color: #ff3333; color: #ff3333; background: rgba(255,51,51,0.08); }
-
-        .log-container { max-height: 350px; overflow-y: auto; border: 1px solid rgba(204,0,0,0.1); border-radius: 4px; }
-
-        .data-actions {
-            display: flex; gap: 10px; flex-wrap: wrap;
-            margin-top: 15px; padding-top: 15px;
-            border-top: 1px solid rgba(204,0,0,0.1);
-        }
-
-        summary { cursor: pointer; font-size: 0.8rem; color: rgba(204,0,0,0.6); }
-        details { margin-top: 12px; }
-
-        .empty-state {
-            text-align: center; padding: 25px;
-            color: rgba(204,0,0,0.3); font-size: 0.85rem;
-        }
-
-        .site-link {
-            display: inline-block; border: 1px solid rgba(204,0,0,0.3);
-            padding: 5px 12px; border-radius: 4px; color: rgba(204,0,0,0.5);
-            text-decoration: none; font-size: 0.75rem;
-        }
-        .site-link:hover { border-color: #cc0000; color: #cc0000; }
-
-        @media (max-width: 600px) {
-            body { padding: 10px; }
-            .header h1 { font-size: 1rem; }
-            table { font-size: 0.7rem; }
-            td, th { padding: 4px; }
-            td input { font-size: 0.65rem; padding: 2px 4px; }
-            .stats { grid-template-columns: repeat(2, 1fr); }
-        }
-    </style>
-</head>
-<body>
-
-    <!-- ==================== LOGIN SCREEN ==================== -->
-    <div class="login-overlay" id="loginOverlay">
-        <div class="login-box">
-            <h1>🔴 BLAZE ADMIN</h1>
-            <p class="sub">>> AUTHORIZED PERSONNEL ONLY <<</p>
-            <p class="login-error" id="loginError">❌ Invalid credentials!</p>
-            <input type="text" id="loginUser" placeholder="USERNAME" autocomplete="off">
-            <input type="password" id="loginPass" placeholder="PASSWORD">
-            <button onclick="handleLogin()">▸ LOGIN</button>
-            <p style="text-align:center; margin-top:12px; font-size:0.7rem; color:rgba(204,0,0,0.25);">Default: blazeadmin / BLZ@2026</p>
-        </div>
-    </div>
-
-    <!-- ==================== DASHBOARD ==================== -->
-    <div id="dashboard" style="display:none;">
-        
-        <div class="header">
-            <h1>🔴 BLAZE ADMIN PANEL</h1>
-            <div class="flex">
-                <span class="info">[ <span id="currentTime">--</span> ]</span>
-                <a href="index.html" target="_blank" class="site-link">🌐 VIEW SITE</a>
-                <button class="logout-btn" onclick="handleLogout()">⛔ LOGOUT</button>
-            </div>
-        </div>
-
-        <div class="msg" id="msgBox"></div>
-
-        <!-- STATS -->
-        <div class="stats" id="statsContainer">
-            <div class="stat-card"><div class="num" id="statVisitors">0</div><div class="label">TOTAL VISITORS</div></div>
-            <div class="stat-card"><div class="num" id="statKeys">0</div><div class="label">TOTAL KEYS</div></div>
-            <div class="stat-card"><div class="num" id="statKeysUsed">0</div><div class="label">KEYS USED</div></div>
-            <div class="stat-card"><div class="num" id="statUniqueIPs">0</div><div class="label">UNIQUE IPS</div></div>
-        </div>
-
-        <!-- ===== SECTION 1: CHANNEL LINKS ===== -->
-        <div class="section">
-            <h2>📡 CHANNEL LINKS CONFIG</h2>
-            <p style="font-size:0.7rem; color:rgba(204,0,0,0.4); margin-bottom:10px;">
-                Ye links BLAZE website par show honge. Jo bhi change karenge, woh auto-update hoga.
-            </p>
-            <div class="mb-10">
-                <label style="font-size:0.75rem; color:rgba(204,0,0,0.5);">✈️ TELEGRAM LINK:</label>
-                <input type="url" id="tgLinkInput" style="width:100%; background:rgba(204,0,0,0.05); border:1px solid rgba(204,0,0,0.3); color:#cc0000; padding:8px; font-family:'Courier New',monospace; margin-top:4px;">
-            </div>
-            <div class="mb-10">
-                <label style="font-size:0.75rem; color:rgba(204,0,0,0.5);">▶️ YOUTUBE LINK:</label>
-                <input type="url" id="ytLinkInput" style="width:100%; background:rgba(204,0,0,0.05); border:1px solid rgba(204,0,0,0.3); color:#cc0000; padding:8px; font-family:'Courier New',monospace; margin-top:4px;">
-            </div>
-            <button class="btn" onclick="saveChannels()">💾 SAVE CHANNELS</button>
-        </div>
-
-        <!-- ===== SECTION 2: KEYS MANAGEMENT ===== -->
-        <div class="section">
-            <h2>🔑 FILE KEYS MANAGEMENT</h2>
-            <p style="font-size:0.7rem; color:rgba(204,0,0,0.4); margin-bottom:10px;">
-                Yeh keys BLAZE site ke liye hain. <strong>AXP ADMIN se koi connection nahi hai.</strong>
-            </p>
-            
-            <div style="overflow-x:auto;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="min-width:100px;">🔑 KEY</th>
-                            <th style="min-width:140px;">📄 FILE NAME</th>
-                            <th style="min-width:70px;">📦 SIZE</th>
-                            <th style="min-width:200px;">🔗 FILE URL</th>
-                            <th style="min-width:40px;"></th>
-                        </tr>
-                    </thead>
-                    <tbody id="keysTableBody"></tbody>
-                </table>
-            </div>
-            
-            <div class="flex mt-10 gap">
-                <button class="btn btn-sm btn-success" onclick="addKeyRow()">➕ ADD NEW KEY</button>
-                <button class="btn" onclick="saveAllKeys()">💾 SAVE ALL KEYS</button>
-            </div>
-        </div>
-
-        <!-- ===== SECTION 3: USER LOGS ===== -->
-        <div class="section">
-            <h2>📊 USER ACTIVITY LOGS</h2>
-            <p style="font-size:0.7rem; color:rgba(204,0,0,0.4); margin-bottom:10px;">
-                BLAZE site se aane wale saare users yahan log hote hain.
-            </p>
-            
-            <div id="logsContainer">
-                <div class="empty-state">No user activity yet.</div>
-            </div>
-            
-            <div class="flex mt-10 gap">
-                <button class="btn btn-danger btn-sm" onclick="clearAllLogs()">🗑 CLEAR ALL LOGS</button>
-            </div>
-
-            <details>
-                <summary>➕ Manual Log Add</summary>
-                <div class="flex mt-10">
-                    <input type="text" id="manualIp" placeholder="IP Address" style="background:rgba(204,0,0,0.05); border:1px solid rgba(204,0,0,0.3); color:#cc0000; padding:5px 8px; font-family:'Courier New',monospace; flex:1;">
-                    <input type="text" id="manualKey" placeholder="Key Used" style="background:rgba(204,0,0,0.05); border:1px solid rgba(204,0,0,0.3); color:#cc0000; padding:5px 8px; font-family:'Courier New',monospace; flex:1;">
-                    <button class="btn btn-sm btn-success" onclick="addManualLog()">➕ ADD</button>
-                </div>
-            </details>
-        </div>
-
-        <!-- ===== SECTION 4: BACKUP & RESTORE ===== -->
-        <div class="section">
-            <h2>💾 BACKUP & RESTORE</h2>
-            <p style="font-size:0.7rem; color:rgba(204,0,0,0.4); margin-bottom:10px;">
-                Saari settings, keys aur logs ka backup/restore.
-            </p>
-            <div class="data-actions">
-                <button class="btn btn-sm" onclick="exportData()">📥 EXPORT DATA</button>
-                <button class="btn btn-sm" onclick="document.getElementById('importFile').click()">📤 IMPORT DATA</button>
-                <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
-                <button class="btn btn-sm btn-danger" onclick="resetAllData()">⚠️ RESET ALL</button>
-            </div>
-        </div>
-
-        <div style="text-align:center; margin-top:15px; padding-top:10px; border-top:1px solid rgba(204,0,0,0.08); font-size:0.7rem; color:rgba(204,0,0,0.25);">
-            🔴 BLAZE ADMIN PANEL v1.0 | Made with 🔴 by AXP BLAZE
-        </div>
-
-    </div>
-
-    <script>
-        // ==================== 🔴 AUTH CONFIG 🔴 ====================
-        const ADMIN_CREDENTIALS = {
-            username: 'blazeadmin',
-            password: 'BLZ@2026'
-        };
-
-        // ==================== 🔴 DEFAULT DATA 🔴 ====================
-        // BLAZE ka apna data - completely independent
-        const DEFAULT_DATA = {
-            channels: {
-                telegram: 'https://t.me/+Fb3f7eusvbw0ZDBl',
-                youtube: 'https://youtube.com/@axpsirm?si=i0QSm-0wDn9QQo8H'
-            },
-            keys: [
-                { key: 'BLZ001', name: 'blaze_video1_file.zip', size: '3.2 MB', url: '' },
-                { key: 'BLZ002', name: 'blaze_video2_file.pdf', size: '1.8 MB', url: '' },
-                { key: 'BLZ003', name: 'blaze_video3_file.py', size: '0.5 MB', url: '' },
-                { key: 'BLZ004', name: 'blaze_video4_file.xml', size: '0.2 MB', url: '' },
-                { key: 'BLZ005', name: 'blaze_video5_file.exe', size: '5.1 MB', url: '' },
-                { key: 'BLZ006', name: 'blaze_video6_file.docx', size: '0.9 MB', url: '' },
-                { key: 'BLZ007', name: 'blaze_video7_file.png', size: '2.4 MB', url: '' },
-                { key: 'BLZ008', name: 'blaze_video8_file.rar', size: '4.7 MB', url: '' },
-                { key: 'BLZ009', name: 'blaze_video9_file.apk', size: '6.3 MB', url: '' },
-                { key: 'BLZ010', name: 'blaze_video10_file.dat', size: '0.1 MB', url: '' }
-            ],
-            users: []
-        };
-
-        // ==================== 🔴 DATA MANAGER 🔴 ====================
-        // localStorage key: "blazeAdminData" - AXP ka "axpAdminData" se alag
-        
-        function getData() {
-            try {
-                const saved = localStorage.getItem('blazeAdminData');
-                if (saved) {
-                    const parsed = JSON.parse(saved);
-                    if (!parsed.channels) parsed.channels = { ...DEFAULT_DATA.channels };
-                    if (!parsed.keys) parsed.keys = [...DEFAULT_DATA.keys];
-                    if (!parsed.users) parsed.users = [];
-                    return parsed;
-                }
-            } catch(e) {}
-            return JSON.parse(JSON.stringify(DEFAULT_DATA));
-        }
-
-        function saveData(data) {
-            localStorage.setItem('blazeAdminData', JSON.stringify(data));
-            try {
-                localStorage.setItem('blazeAdminUpdated', Date.now().toString());
-            } catch(e) {}
-        }
-
-        // ==================== 🔴 LOGIN / LOGOUT 🔴 ====================
-        function handleLogin() {
-            const user = document.getElementById('loginUser').value.trim();
-            const pass = document.getElementById('loginPass').value.trim();
-            const error = document.getElementById('loginError');
-
-            if (user === ADMIN_CREDENTIALS.username && pass === ADMIN_CREDENTIALS.password) {
-                localStorage.setItem('blazeAdminLoggedIn', 'true');
-                document.getElementById('loginOverlay').style.display = 'none';
-                document.getElementById('dashboard').style.display = 'block';
-                initDashboard();
-            } else {
-                error.style.display = 'block';
-                setTimeout(() => { error.style.display = 'none'; }, 3000);
-            }
-        }
-
-        function handleLogout() {
-            localStorage.removeItem('blazeAdminLoggedIn');
-            document.getElementById('loginOverlay').style.display = 'flex';
-            document.getElementById('dashboard').style.display = 'none';
-            document.getElementById('loginUser').value = '';
-            document.getElementById('loginPass').value = '';
-        }
-
-        if (localStorage.getItem('blazeAdminLoggedIn') === 'true') {
-            document.getElementById('loginOverlay').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'block';
-            window.addEventListener('DOMContentLoaded', initDashboard);
-        }
-
-        // ==================== 🔴 CLOCK 🔴 ====================
-        function updateClock() {
-            const now = new Date();
-            document.getElementById('currentTime').textContent = now.toLocaleString('en-IN', { 
-                day: '2-digit', month: '2-digit', year: 'numeric',
-                hour: '2-digit', minute: '2-digit', second: '2-digit',
-                hour12: false 
-            });
-        }
-        setInterval(updateClock, 1000);
-
-        // ==================== 🔴 MESSAGE 🔴 ====================
-        function showMessage(text, isError = false) {
-            const box = document.getElementById('msgBox');
-            box.textContent = text;
-            box.className = 'msg' + (isError ? ' error' : '');
-            box.style.display = 'block';
-            setTimeout(() => { box.style.display = 'none'; }, 3000);
-        }
-
-        // ==================== 🔴 STATS 🔴 ====================
-        function updateStats(data) {
-            document.getElementById('statVisitors').textContent = data.users.length;
-            document.getElementById('statKeys').textContent = data.keys.length;
-            const usedKeys = new Set(data.users.filter(u => u.key).map(u => u.key));
-            document.getElementById('statKeysUsed').textContent = usedKeys.size;
-            const uniqueIPs = new Set(data.users.map(u => u.ip));
-            document.getElementById('statUniqueIPs').textContent = uniqueIPs.size;
-        }
-
-        // ==================== 🔴 CHANNELS 🔴 ====================
-        function loadChannels(data) {
-            document.getElementById('tgLinkInput').value = data.channels.telegram || '';
-            document.getElementById('ytLinkInput').value = data.channels.youtube || '';
-        }
-
-        function saveChannels() {
-            const data = getData();
-            data.channels.telegram = document.getElementById('tgLinkInput').value.trim();
-            data.channels.youtube = document.getElementById('ytLinkInput').value.trim();
-            saveData(data);
-            showMessage('✅ Channel links saved!');
-        }
-
-        // ==================== 🔴 KEYS 🔴 ====================
-        function renderKeys(data) {
-            const tbody = document.getElementById('keysTableBody');
-            tbody.innerHTML = '';
-            data.keys.forEach((k) => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><input type="text" class="key-input" value="${escapeHtml(k.key)}" maxlength="20" placeholder="e.g. BLZ011"></td>
-                    <td><input type="text" class="name-input" value="${escapeHtml(k.name)}" placeholder="file_name.zip"></td>
-                    <td><input type="text" class="size-input" value="${escapeHtml(k.size)}" placeholder="e.g. 2.4 MB"></td>
-                    <td><input type="url" class="url-input" value="${escapeHtml(k.url || '')}" placeholder="https://... (optional)"></td>
-                    <td><button class="btn btn-danger btn-sm" onclick="deleteKeyRow(this)">✕</button></td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function addKeyRow() {
-            const tbody = document.getElementById('keysTableBody');
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><input type="text" class="key-input" placeholder="BLZ011" maxlength="20"></td>
-                <td><input type="text" class="name-input" placeholder="file_name.zip"></td>
-                <td><input type="text" class="size-input" placeholder="e.g. 1.5 MB"></td>
-                <td><input type="url" class="url-input" placeholder="https://... (optional)"></td>
-                <td><button class="btn btn-danger btn-sm" onclick="deleteKeyRow(this)">✕</button></td>
-            `;
-            tbody.appendChild(tr);
-        }
-
-        function deleteKeyRow(btn) {
-            btn.closest('tr').remove();
-        }
-
-        function collectKeysFromTable() {
-            const rows = document.querySelectorAll('#keysTableBody tr');
-            const keys = [];
-            rows.forEach(row => {
-                const key = row.querySelector('.key-input')?.value?.trim().toUpperCase();
-                if (key) {
-                    keys.push({
-                        key: key,
-                        name: row.querySelector('.name-input')?.value?.trim() || 'unknown.bin',
-                        size: row.querySelector('.size-input')?.value?.trim() || '0 MB',
-                        url: row.querySelector('.url-input')?.value?.trim() || ''
-                    });
-                }
-            });
-            return keys;
-        }
-
-        function saveAllKeys() {
-            const data = getData();
-            data.keys = collectKeysFromTable();
-            saveData(data);
-            renderKeys(data);
-            updateStats(data);
-            showMessage('✅ ' + data.keys.length + ' keys saved!');
-        }
-
-        // ==================== 🔴 LOGS 🔴 ====================
-        function renderLogs(data) {
-            const container = document.getElementById('logsContainer');
-            if (data.users.length === 0) {
-                container.innerHTML = '<div class="empty-state">No user activity yet.</div>';
-                return;
-            }
-            const reversed = [...data.users].reverse();
-            let html = `<div class="log-container"><table><thead><tr><th>#</th><th>🌐 IP</th><th>🔑 KEY</th><th>⏱ TIME</th></tr></thead><tbody>`;
-            reversed.forEach((u, i) => {
-                html += `<tr><td>${i+1}</td><td>${escapeHtml(u.ip)}</td><td>${escapeHtml(u.key||'—')}</td><td>${escapeHtml(u.time)}</td></tr>`;
-            });
-            html += '</tbody></table></div>';
-            container.innerHTML = html;
-        }
-
-        function clearAllLogs() {
-            if (!confirm('Clear all user logs?')) return;
-            const data = getData();
-            data.users = [];
-            saveData(data);
-            renderLogs(data);
-            updateStats(data);
-            showMessage('✅ All logs cleared!');
-        }
-
-        function addManualLog() {
-            const ip = document.getElementById('manualIp').value.trim();
-            const key = document.getElementById('manualKey').value.trim().toUpperCase();
-            if (!ip && !key) { showMessage('❌ Enter at least IP or Key', true); return; }
-            const data = getData();
-            data.users.push({ ip: ip || 'manual', key: key || '', time: new Date().toLocaleString('en-IN', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false }) });
-            saveData(data);
-            renderLogs(data);
-            updateStats(data);
-            document.getElementById('manualIp').value = '';
-            document.getElementById('manualKey').value = '';
-            showMessage('✅ Manual log added!');
-        }
-
-        // ==================== 🔴 BACKUP / RESTORE 🔴 ====================
-        function exportData() {
-            const data = getData();
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = 'blaze_backup_' + new Date().toISOString().slice(0,10) + '.json';
-            document.body.appendChild(a); a.click(); document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            showMessage('✅ Data exported!');
-        }
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔥 AXP BLAZE 🔥</title>
-    
-    <!-- 🔴 POPUNDER AD - BACKGROUND MEIN FIRE 🔴 -->
-    <script>
-    (function() {
-        var s = document.createElement('script');
-        s.src = 'https://pl30206122.effectivecpmnetwork.com/32/f1/52/32f152ee06a28904513a0339c0a2f618.js';
-        document.head.appendChild(s);
-    })();
-    </script>
-    
+    <title>🔴 AXP BLAZE 🔴</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            background: #0a0505;
-            color: #ff3333;
+            background: #0a0a0a;
+            color: #cc0000;
             font-family: 'Share Tech Mono', monospace;
             min-height: 100vh;
             display: flex;
@@ -583,7 +24,7 @@
             content: '';
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,50,50,0.03) 2px, rgba(255,50,50,0.03) 4px);
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(204,0,0,0.03) 2px, rgba(204,0,0,0.03) 4px);
             pointer-events: none; z-index: 0;
         }
 
@@ -594,18 +35,17 @@
 
         .container {
             position: relative; z-index: 1;
-            background: rgba(10,5,5,0.95);
-            border: 2px solid #ff3333; border-radius: 8px;
+            background: rgba(10,10,10,0.92);
+            border: 2px solid #8B0000; border-radius: 8px;
             padding: 25px; width: 92%; max-width: 500px;
-            margin: 20px auto;
-            box-shadow: 0 0 30px rgba(255,50,50,0.15), inset 0 0 30px rgba(255,50,50,0.05);
+            box-shadow: 0 0 30px rgba(204,0,0,0.15), inset 0 0 30px rgba(204,0,0,0.05);
         }
 
         .glitch {
             font-family: 'Orbitron', monospace;
             font-size: 1.8rem; font-weight: 900;
-            text-align: center; color: #ff3333;
-            text-shadow: 0 0 10px #ff3333, 0 0 20px #ff3333;
+            text-align: center; color: #cc0000;
+            text-shadow: 0 0 10px #cc0000, 0 0 20px #8B0000;
             animation: glitch 1.5s infinite;
             position: relative; margin-bottom: 8px;
         }
@@ -624,13 +64,13 @@
         }
 
         .glitch::before {
-            color: #ff0000; animation: glitch-shift 0.3s infinite;
+            color: #ff4400; animation: glitch-shift 0.3s infinite;
             clip-path: polygon(0 0, 100% 0, 100% 45%, 0 45%);
             transform: translate(-2px,-2px);
         }
 
         .glitch::after {
-            color: #ff6666; animation: glitch-shift 0.3s infinite reverse;
+            color: #660000; animation: glitch-shift 0.3s infinite reverse;
             clip-path: polygon(0 60%, 100% 60%, 100% 100%, 0 100%);
             transform: translate(2px,2px);
         }
@@ -641,14 +81,14 @@
         }
 
         .typing-sub {
-            font-family: 'Share Tech Mono', monospace; color: #cc2929;
+            font-family: 'Share Tech Mono', monospace; color: #990000;
             text-align: center; font-size: 0.85rem; margin-bottom: 15px;
-            border-right: 2px solid #ff3333;
+            border-right: 2px solid #cc0000;
             white-space: nowrap; overflow: hidden; width: 0;
-            animation: typing 2.5s steps(22) forwards, blink 0.8s infinite;
+            animation: typing 2.5s steps(20) forwards, blink 0.8s infinite;
         }
 
-        @keyframes typing { to { width: 22ch; } }
+        @keyframes typing { to { width: 20ch; } }
         @keyframes blink { 50% { border-color: transparent; } }
 
         .page { display: none; animation: fadeIn 0.5s ease; }
@@ -660,20 +100,20 @@
         }
 
         .scanline-box {
-            border: 1px solid #ff3333; padding: 15px; border-radius: 4px;
-            position: relative; margin: 12px 0; background: rgba(255,50,50,0.02);
+            border: 1px solid #8B0000; padding: 15px; border-radius: 4px;
+            position: relative; margin: 12px 0; background: rgba(204,0,0,0.02);
         }
 
         .scanline-box::after {
             content: ''; position: absolute; top: 0; left: 0;
             width: 100%; height: 100%;
-            background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,50,50,0.03) 3px, rgba(255,50,50,0.03) 6px);
+            background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(204,0,0,0.03) 3px, rgba(204,0,0,0.03) 6px);
             pointer-events: none;
         }
 
         .hacker-btn {
-            background: transparent; color: #ff3333;
-            border: 2px solid #ff3333; padding: 10px 25px;
+            background: transparent; color: #cc0000;
+            border: 2px solid #8B0000; padding: 10px 25px;
             font-family: 'Orbitron', monospace; font-size: 0.9rem;
             font-weight: 700; cursor: pointer; text-transform: uppercase;
             letter-spacing: 2px; transition: all 0.3s ease;
@@ -681,8 +121,8 @@
         }
 
         .hacker-btn:hover {
-            background: #ff3333; color: #0a0505;
-            box-shadow: 0 0 20px rgba(255,50,50,0.5); transform: scale(1.02);
+            background: #8B0000; color: #0a0a0a;
+            box-shadow: 0 0 20px rgba(204,0,0,0.5); transform: scale(1.02);
         }
 
         .hacker-btn:disabled {
@@ -690,666 +130,521 @@
         }
 
         .hacker-btn:disabled:hover {
-            background: transparent; color: #ff3333; box-shadow: none;
+            background: transparent; color: #cc0000; box-shadow: none;
         }
 
         .channel-link {
             display: block; padding: 10px; margin: 8px 0;
-            background: rgba(255,50,50,0.05);
-            border: 1px solid #ff3333; border-radius: 4px;
-            color: #ff3333; text-decoration: none;
+            background: rgba(204,0,0,0.05);
+            border: 1px solid #8B0000; border-radius: 4px;
+            color: #cc0000; text-decoration: none;
             font-size: 0.9rem; text-align: center; transition: all 0.3s;
             cursor: pointer;
         }
 
         .channel-link:hover {
-            background: rgba(255,50,50,0.15);
-            box-shadow: 0 0 15px rgba(255,50,50,0.2);
+            background: rgba(204,0,0,0.15);
+            box-shadow: 0 0 15px rgba(204,0,0,0.2);
         }
 
         .channel-status {
             float: right; font-size: 0.75rem;
-            padding: 2px 6px; border: 1px solid #662222;
-            color: #662222; border-radius: 3px;
+            padding: 2px 6px; border: 1px solid #ff3333;
+            color: #ff3333; border-radius: 3px;
         }
 
         .channel-status.verified {
-            border-color: #ff3333; color: #ff3333;
+            border-color: #cc0000; color: #cc0000;
         }
 
         .hacker-input {
             width: 100%; padding: 10px 12px;
-            background: rgba(255,50,50,0.05);
-            border: 2px solid #ff3333; border-radius: 4px;
-            color: #ff3333; font-family: 'Share Tech Mono', monospace;
+            background: rgba(204,0,0,0.05);
+            border: 2px solid #8B0000; border-radius: 4px;
+            color: #cc0000; font-family: 'Share Tech Mono', monospace;
             font-size: 1rem; letter-spacing: 3px;
             text-align: center; outline: none;
         }
 
         .hacker-input:focus {
-            box-shadow: 0 0 20px rgba(255,50,50,0.3);
-            background: rgba(255,50,50,0.1);
+            box-shadow: 0 0 20px rgba(204,0,0,0.3);
+            background: rgba(204,0,0,0.1);
         }
 
-        .hacker-input::placeholder { color: rgba(255,50,50,0.3); letter-spacing: 1px; }
+        .hacker-input::placeholder { color: rgba(204,0,0,0.3); letter-spacing: 1px; }
 
-        .progress-container {
-            display: none; margin: 12px 0;
+        .file-info {
+            text-align: center; margin: 8px 0; padding: 10px;
+            border: 1px solid rgba(204,0,0,0.2); border-radius: 4px;
+            background: rgba(204,0,0,0.03);
         }
+
+        .file-info .file-name { font-size: 1.1rem; font-weight: bold; color: #cc0000; }
+        .file-info .file-size { font-size: 0.75rem; color: rgba(204,0,0,0.6); }
+        .file-info .file-key-label { font-size: 0.7rem; color: rgba(204,0,0,0.4); margin-top: 4px; }
+
+        .progress-container { margin: 12px 0; display: none; }
 
         .progress-bar {
-            width: 100%; height: 20px;
-            background: rgba(255,50,50,0.1);
-            border: 1px solid #ff3333; border-radius: 2px;
-            overflow: hidden;
+            width: 100%; height: 4px;
+            background: rgba(204,0,0,0.1); border-radius: 2px; overflow: hidden;
         }
 
         .progress-fill {
-            height: 100%; width: 0%;
-            background: linear-gradient(90deg, #ff3333, #ff0000);
-            transition: width 0.3s ease;
-            box-shadow: 0 0 10px rgba(255,50,50,0.5);
+            height: 100%; width: 0%; background: #cc0000;
+            box-shadow: 0 0 10px #cc0000;
         }
 
         .progress-text {
-            text-align: center; font-size: 0.8rem;
-            color: #ff3333; margin-top: 5px;
+            text-align: center; font-size: 0.75rem;
+            color: rgba(204,0,0,0.7); margin-top: 4px;
         }
 
-        .key-success { display: none; text-align: center; margin-top: 8px; }
-        .key-success p { font-size: 0.75rem; margin: 2px 0; color: #ff6666; }
-        .key-success .file-name { color: #ff3333; font-size: 1rem; font-weight: bold; }
-
-        .key-error {
-            display: none; text-align: center; color: #ff0000;
-            font-size: 0.85rem; margin-top: 8px;
-            text-shadow: 0 0 10px rgba(255,0,0,0.5);
+        .key-hint {
+            text-align: center; font-size: 0.7rem;
+            color: rgba(204,0,0,0.35); margin-top: 6px;
         }
 
-        .status-bar {
-            display: flex; justify-content: space-between;
-            font-size: 0.7rem; color: rgba(255,50,50,0.4);
-            margin-bottom: 10px; padding-bottom: 5px;
-            border-bottom: 1px solid rgba(255,50,50,0.1);
-        }
-
-        .blink { animation: blink 1s infinite; }
-        @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
-
-        /* 🔥 AD BANNER - SIMPLE 🔥 */
-        .ad-banner {
-            display: none;
-            border: 1px solid #ff3333;
-            border-radius: 4px;
-            padding: 15px;
-            margin: 10px 0;
-            background: rgba(255,50,50,0.03);
-            text-align: center;
-        }
-
-        .ad-banner .ad-label {
-            font-size: 0.7rem;
-            color: rgba(255,50,50,0.4);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 5px;
-        }
-
-        .ad-banner .ad-timer {
-            font-family: 'Orbitron', monospace;
-            font-size: 2.2rem;
-            color: #ff3333;
-            text-shadow: 0 0 15px rgba(255,50,50,0.3);
-        }
-
-        .ad-banner .ad-sub {
-            font-size: 0.7rem;
-            color: rgba(255,50,50,0.5);
-            margin-top: 3px;
+        @media (max-width: 480px) {
+            .container { padding: 15px; width: 95%; }
+            .glitch { font-size: 1.3rem; }
+            .hacker-btn { padding: 8px 18px; font-size: 0.8rem; }
         }
     </style>
+    
+    <!-- ===== 🔴 YAHI SE POPUNDER AUR SOCIAL BAR CHALEGA (PEHLE HEAD MEIN HI) 🔴 ===== -->
+    <script src="https://pl30206121.effectivecpmnetwork.com/f4/30/b9/f430b92f33269e5bfd1a5e5519061b52.js"></script>
+    <script src="https://pl30206122.effectivecpmnetwork.com/32/f1/52/32f152ee06a28904513a0339c0a2f618.js"></script>
+
 </head>
 <body>
 
-<canvas id="matrixCanvas"></canvas>
+    <canvas id="matrixCanvas"></canvas>
 
-<div class="container">
-    
-    <div class="status-bar">
-        <span>🔥 BLAZE://access</span>
-        <span class="blink">● LIVE</span>
-    </div>
+    <div class="container">
 
-    <!-- PAGE 1: WELCOME -->
-    <div id="page1" class="page active">
-        <div class="glitch" data-text="🔥 AXP BLAZE" style="font-size:1.8rem;">🔥 AXP BLAZE</div>
-        <p class="typing-sub">>> unauthorized access detected <<</p>
-        <div class="scanline-box">
-            <p style="text-align:center; font-size:0.8rem; color:rgba(255,50,50,0.7);">
-                WELCOME TO BLAZE NETWORK<br><br>
-                <span style="font-size:0.65rem; color:rgba(255,50,50,0.4);">
-                ◆ BLAZE ver 2.0 ◆<br>
-                ◆ SOURCE: ENCRYPTED ◆
-                </span>
-            </p>
-        </div>
-        <button class="hacker-btn" onclick="goToPage(2)">▸ INITIALIZE ACCESS</button>
-    </div>
-
-    <!-- PAGE 2: CHANNELS -->
-    <div id="page2" class="page">
-        <div class="glitch" data-text="🔥 CHANNELS" style="font-size:1.5rem;">🔥 CHANNELS</div>
-        <p style="text-align:center; font-size:0.75rem; margin-bottom:6px; color:rgba(255,50,50,0.6);">>> VERIFY YOUR IDENTITY <<</p>
-        <div class="scanline-box">
-            <a class="channel-link" onclick="markVisited('tg')">
-                🔴 TELEGRAM <span class="channel-status" id="tgStatus">NOT JOINED</span>
-            </a>
-            <a class="channel-link" onclick="markVisited('yt')">
-                🔴 YOUTUBE <span class="channel-status" id="ytStatus">NOT SUBSCRIBED</span>
-            </a>
-        </div>
-        
-        <!-- 🔥 AD BANNER PAGE 2 🔥 -->
-        <div class="ad-banner" id="adBanner2">
-            <div class="ad-label">🔴 SPONSORED</div>
-            <div class="ad-timer" id="adTimer2">5</div>
-            <div class="ad-sub">seconds</div>
-        </div>
-        
-        <button class="hacker-btn" id="continueBtn2" onclick="onContinue(2, 3)" disabled>⛔ JOIN TO UNLOCK</button>
-    </div>
-
-    <!-- PAGE 3: KEY -->
-    <div id="page3" class="page">
-        <div class="glitch" data-text="🔥 ACCESS KEY" style="font-size:1.5rem;">🔥 ACCESS KEY</div>
-        <p style="text-align:center; font-size:0.75rem; margin-bottom:6px; color:rgba(255,50,50,0.6);">>> ENTER BLAZE AUTHORIZATION KEY <<</p>
-        <div class="scanline-box">
-            <input type="text" class="hacker-input" id="fileKeyInput" placeholder="BLZXXX" maxlength="6" oninput="checkFileKey()" autocomplete="off">
-            <div class="key-error" id="keyError">✖ INVALID KEY - ACCESS DENIED</div>
-            <div class="key-success" id="keySuccess">
-                <p class="file-name" id="displayFileName">🔥 protected_file.bin</p>
-                <p id="displayFileSize">SIZE: UNKNOWN</p>
-                <p id="displayFileKey">KEY: ---</p>
+        <!-- PAGE 1: WELCOME -->
+        <div id="page1" class="page">
+            <div class="glitch" data-text="🔴 AXP BLAZE 🔴">🔴 AXP BLAZE 🔴</div>
+            <div class="typing-sub">_SYSTEM_INITIALIZING_</div>
+            <div class="scanline-box">
+                <p style="text-align:center; margin-bottom:10px; font-size:0.85rem; color:rgba(204,0,0,0.8);">⚡ WELCOME TO THE INFERNO ⚡<br><span style="font-size:0.75rem;">[ ACCESS GRANTED ]</span></p>
             </div>
+            <button class="hacker-btn" onclick="adThenPage(2)">▸ ENTER THE INFERNO</button>
         </div>
-        
-        <!-- 🔥 AD BANNER PAGE 3 🔥 -->
-        <div class="ad-banner" id="adBanner3">
-            <div class="ad-label">🔴 SPONSORED</div>
-            <div class="ad-timer" id="adTimer3">5</div>
-            <div class="ad-sub">seconds</div>
+
+        <!-- PAGE 2: CHANNELS -->
+        <div id="page2" class="page">
+            <div class="glitch" data-text="⛓ CHANNELS" style="font-size:1.3rem;">⛓ CHANNELS</div>
+            <p style="text-align:center; font-size:0.75rem; margin-bottom:10px; color:rgba(204,0,0,0.6);">>> VERIFY YOUR ALLEGIANCE <<</p>
+            <div class="scanline-box">
+                <div class="channel-link" onclick="markVisited('tg')">
+                    ✈️ JOIN TELEGRAM
+                    <span class="channel-status" id="tgStatus">NOT JOINED</span>
+                </div>
+                <div class="channel-link" onclick="markVisited('yt')">
+                    ▶️ SUBSCRIBE YOUTUBE
+                    <span class="channel-status" id="ytStatus">NOT SUBSCRIBED</span>
+                </div>
+                <p style="text-align:center; font-size:0.7rem; margin-top:8px; color:rgba(204,0,0,0.4);">[ Both required to proceed ]</p>
+            </div>
+            <button class="hacker-btn" id="continueBtn2" disabled onclick="adThenPage(3)">⛔ JOIN TO UNLOCK</button>
         </div>
-        
-        <button class="hacker-btn" id="continueBtn3" onclick="onContinue(3, 4)" disabled>⛔ ENTER KEY FIRST</button>
+
+        <!-- PAGE 3: FILE KEY -->
+        <div id="page3" class="page">
+            <div class="glitch" data-text="🔑 FILE KEY" style="font-size:1.3rem;">🔑 FILE KEY</div>
+            <p style="text-align:center; font-size:0.75rem; margin-bottom:10px; color:rgba(204,0,0,0.6);">>> ENTER ACCESS KEY <<</p>
+            <div class="scanline-box">
+                <input type="text" class="hacker-input" id="fileKeyInput" placeholder="XXXXXXXX" maxlength="20" oninput="checkFileKey()">
+                <p class="key-hint">[ Key from video description ]</p>
+                <p id="keyError" style="text-align:center; font-size:0.75rem; color:#ff3333; margin-top:5px; display:none;">❌ INVALID KEY</p>
+                <p id="keySuccess" style="text-align:center; font-size:0.75rem; color:#cc0000; margin-top:5px; display:none;">✅ KEY ACCEPTED</p>
+            </div>
+            <button class="hacker-btn" id="continueBtn3" disabled onclick="adThenPage(4)">⛔ ENTER KEY FIRST</button>
+        </div>
+
+        <!-- PAGE 4: DOWNLOAD -->
+        <div id="page4" class="page">
+            <div class="glitch" data-text="⬇ DOWNLOAD" style="font-size:1.3rem;">⬇ DOWNLOAD</div>
+            <p style="text-align:center; font-size:0.75rem; margin-bottom:10px; color:rgba(204,0,0,0.6);">>> YOUR FILE IS READY <<</p>
+            <div class="scanline-box">
+                <div class="file-info">
+                    <div class="file-name" id="displayFileName">🔒 protected_file.bin</div>
+                    <div class="file-size" id="displayFileSize">SIZE: UNKNOWN</div>
+                    <div class="file-key-label" id="displayFileKey">KEY: ---</div>
+                </div>
+            </div>
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+                <div class="progress-text" id="progressText">[ INITIALIZING... ]</div>
+            </div>
+            <button class="hacker-btn" id="downloadBtn" onclick="adThenDownload()">⬇ DOWNLOAD NOW</button>
+        </div>
+
+        <!-- PAGE 5: THANKS -->
+        <div id="page5" class="page">
+            <div class="glitch" data-text="🙏 THANKS" style="font-size:1.5rem;">🙏 THANKS</div>
+            <p style="text-align:center; font-size:0.75rem; margin-bottom:10px; color:rgba(204,0,0,0.6);">>> MISSION COMPLETE <<</p>
+            <div class="scanline-box" style="text-align:center;">
+                <p style="font-size:1rem; margin-bottom:8px;">🎉 THANKS FOR COMING 🎉</p>
+                <p style="font-size:0.75rem; color:rgba(204,0,0,0.6);">[ blaze://inferno.network/exit ]</p>
+                <p style="font-size:0.7rem; margin-top:8px; color:rgba(204,0,0,0.3);">◆ Made with 🔴 by AXP BLAZE ◆</p>
+            </div>
+            <button class="hacker-btn" onclick="fullReset()">⟳ RESTART</button>
+        </div>
+
     </div>
 
-    <!-- PAGE 4: DOWNLOAD -->
-    <div id="page4" class="page">
-        <div class="glitch" data-text="🔥 DOWNLOAD" style="font-size:1.5rem;">🔥 DOWNLOAD</div>
-        <p style="text-align:center; font-size:0.75rem; margin-bottom:6px; color:rgba(255,50,50,0.6);">>> SECURE DOWNLOAD INITIATED <<</p>
-        <div class="scanline-box">
-            <p style="font-size:0.85rem; text-align:center;" id="downloadFileName">UNKNOWN</p>
-            <p style="font-size:0.7rem; text-align:center; color:rgba(255,50,50,0.5);" id="downloadFileInfo">BLAZE://secure/drop/</p>
-        </div>
-        <div class="progress-container" id="progressContainer">
-            <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-            <div class="progress-text" id="progressText">[ INITIALIZING... ]</div>
-        </div>
-        
-        <!-- 🔥 AD BANNER PAGE 4 🔥 -->
-        <div class="ad-banner" id="adBanner4">
-            <div class="ad-label">🔴 SPONSORED</div>
-            <div class="ad-timer" id="adTimer4">5</div>
-            <div class="ad-sub">seconds</div>
-        </div>
-        
-        <button class="hacker-btn" id="downloadBtn" onclick="onDownload()">⬇ DOWNLOAD NOW</button>
-    </div>
-
-    <!-- PAGE 5: THANKS -->
-    <div id="page5" class="page">
-        <div class="glitch" data-text="🔥 THANKS" style="font-size:1.5rem;">🔥 THANKS</div>
-        <p style="text-align:center; font-size:0.75rem; margin-bottom:10px; color:rgba(255,50,50,0.6);">>> MISSION COMPLETE <<</p>
-        <div class="scanline-box" style="text-align:center;">
-            <p style="font-size:1rem; margin-bottom:8px;">🔥 THANKS FOR COMING 🔥</p>
-            <p style="font-size:0.75rem; color:rgba(255,50,50,0.6);">[ blaze://network/exit ]</p>
-            <p style="font-size:0.7rem; margin-top:8px; color:rgba(255,50,50,0.3);">◆ Made with 🔥 by AXP BLAZE ◆</p>
-        </div>
-        <button class="hacker-btn" onclick="fullReset()">⟳ RESTART</button>
-    </div>
-
-</div>
-
-<script>
-    // ==================== MATRIX RAIN ====================
-    const canvas = document.getElementById('matrixCanvas');
-    const ctx = canvas.getContext('2d');
-    let matrixWidth, matrixHeight, columns, drops;
-
-    function initMatrix() {
-        matrixWidth = canvas.width = window.innerWidth;
-        matrixHeight = canvas.height = window.innerHeight;
-        columns = Math.floor(matrixWidth / 14);
-        drops = Array(columns).fill(1);
-    }
-    initMatrix();
-    window.addEventListener('resize', initMatrix);
-
-    const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789BLAZE';
-
-    function drawMatrix() {
-        ctx.fillStyle = 'rgba(10,5,5,0.05)';
-        ctx.fillRect(0, 0, matrixWidth, matrixHeight);
-        ctx.fillStyle = '#ff3333';
-        ctx.font = '14px monospace';
-        for (let i = 0; i < drops.length; i++) {
-            const char = chars[Math.floor(Math.random() * chars.length)];
-            ctx.fillText(char, i * 14, drops[i] * 14);
-            if (drops[i] * 14 > matrixHeight && Math.random() > 0.975) drops[i] = 0;
-            drops[i]++;
+    <script>
+        // ==================== 🔴 AD TRIGGER FUNCTION 🔴 ====================
+        // Jab bhi ye function call hoga, popunder aur social bar reload hoga
+        function triggerAds() {
+            // Popunder script dobara inject karo
+            var p = document.createElement('script');
+            p.src = 'https://pl30206121.effectivecpmnetwork.com/f4/30/b9/f430b92f33269e5bfd1a5e5519061b52.js';
+            document.body.appendChild(p);
+            
+            // Social bar script dobara inject karo
+            var s = document.createElement('script');
+            s.src = 'https://pl30206122.effectivecpmnetwork.com/32/f1/52/32f152ee06a28904513a0339c0a2f618.js';
+            document.body.appendChild(s);
         }
-    }
-    setInterval(drawMatrix, 50);
 
-    // ==================== DATA ====================
-    function loadBlazeData() {
-        try {
-            const saved = localStorage.getItem('blazeAdminData');
-            if (saved) return JSON.parse(saved);
-        } catch(e) {}
-        return null;
-    }
-
-    const DEFAULT_DATABASE = {
-        "BLZ001": { name: "blaze_file_1.zip",  size: "3.2 MB", url: "", content: "AXP BLAZE | FILE 001" },
-        "BLZ002": { name: "blaze_file_2.pdf",  size: "1.8 MB", url: "", content: "AXP BLAZE | FILE 002" },
-        "BLZ003": { name: "blaze_file_3.py",   size: "0.5 MB", url: "", content: "AXP BLAZE | FILE 003" },
-        "BLZ004": { name: "blaze_file_4.xml",  size: "0.2 MB", url: "", content: "AXP BLAZE | FILE 004" },
-        "BLZ005": { name: "blaze_file_5.exe",  size: "5.1 MB", url: "", content: "AXP BLAZE | FILE 005" },
-        "BLZ006": { name: "blaze_file_6.docx", size: "0.9 MB", url: "", content: "AXP BLAZE | FILE 006" },
-        "BLZ007": { name: "blaze_file_7.png",  size: "2.4 MB", url: "", content: "AXP BLAZE | FILE 007" },
-        "BLZ008": { name: "blaze_file_8.rar",  size: "4.7 MB", url: "", content: "AXP BLAZE | FILE 008" },
-        "BLZ009": { name: "blaze_file_9.apk",  size: "6.3 MB", url: "", content: "AXP BLAZE | FILE 009" },
-        "BLZ010": { name: "blaze_file_10.dat", size: "0.1 MB", url: "", content: "AXP BLAZE | FILE 010" }
-    };
-
-    let FILE_DATABASE = {};
-
-    function buildFileDatabase() {
-        FILE_DATABASE = {};
-        const blazeData = loadBlazeData();
-        if (blazeData && blazeData.keys && blazeData.keys.length > 0) {
-            blazeData.keys.forEach(k => {
-                if (k.key) {
-                    FILE_DATABASE[k.key] = {
-                        name: k.name || 'unknown.bin',
-                        size: k.size || '0 MB',
-                        url: k.url || '',
-                        content: 'AXP BLAZE | ' + (k.name || 'unknown')
-                    };
-                }
-            });
-        } else {
-            Object.assign(FILE_DATABASE, DEFAULT_DATABASE);
+        // ==================== 🔴 AD KE SAATH PAGE CHANGE 🔴 ====================
+        function adThenPage(pageNum) {
+            triggerAds();  // Pehle ad trigger karo
+            setTimeout(function() {
+                goToPage(pageNum);  // 200ms baad page change karo
+            }, 200);
         }
-    }
 
-    let CHANNEL_LINKS = {
-        telegram: 'https://t.me/+Fb3f7eusvbw0ZDBl',
-        youtube: 'https://youtube.com/@axpsirm?si=i0QSm-0wDn9QQo8H'
-    };
-
-    function loadChannelLinks() {
-        const blazeData = loadBlazeData();
-        if (blazeData && blazeData.channels) {
-            CHANNEL_LINKS.telegram = blazeData.channels.telegram || CHANNEL_LINKS.telegram;
-            CHANNEL_LINKS.youtube = blazeData.channels.youtube || CHANNEL_LINKS.youtube;
+        // ==================== 🔴 AD KE SAATH DOWNLOAD 🔴 ====================
+        function adThenDownload() {
+            if (!currentFile) { alert("ERROR: No file selected!"); return; }
+            triggerAds();  // Pehle ad trigger karo
+            setTimeout(function() {
+                startDownloadProcess();  // 200ms baad download shuru karo
+            }, 200);
         }
-    }
 
-    // ==================== STATE ====================
-    function saveState() {
-        const state = {
-            tgVisited: tgVisited,
-            ytVisited: ytVisited,
-            currentPage: currentPage,
-            enteredKey: document.getElementById('fileKeyInput') ? document.getElementById('fileKeyInput').value : '',
-            keyAccepted: keyAccepted,
-            acceptedKey: acceptedKey
+        // ==================== MATRIX RAIN ====================
+        const canvas = document.getElementById('matrixCanvas');
+        const ctx = canvas.getContext('2d');
+        let matrixWidth, matrixHeight, columns, drops;
+
+        function initMatrix() {
+            matrixWidth = canvas.width = window.innerWidth;
+            matrixHeight = canvas.height = window.innerHeight;
+            columns = Math.floor(matrixWidth / 14);
+            drops = Array(columns).fill(1);
+        }
+        initMatrix();
+        window.addEventListener('resize', initMatrix);
+
+        const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789AXPBLAZE';
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(10,10,10,0.05)';
+            ctx.fillRect(0, 0, matrixWidth, matrixHeight);
+            ctx.fillStyle = '#cc0000';
+            ctx.font = '14px monospace';
+            for (let i = 0; i < drops.length; i++) {
+                const char = chars[Math.floor(Math.random() * chars.length)];
+                ctx.fillText(char, i * 14, drops[i] * 14);
+                if (drops[i] * 14 > matrixHeight && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
+        }
+        setInterval(drawMatrix, 50);
+
+        // ==================== 🔴 BLAZE DATA LOADER 🔴 ====================
+        function loadBlazeAdminData() {
+            try {
+                const saved = localStorage.getItem('blazeAdminData');
+                if (saved) return JSON.parse(saved);
+            } catch(e) {}
+            return null;
+        }
+
+        // ==================== 🔴 DYNAMIC FILE DATABASE 🔴 ====================
+        let FILE_DATABASE = {};
+        let CHANNEL_LINKS = {
+            telegram: 'https://t.me/+Fb3f7eusvbw0ZDBl',
+            youtube: 'https://youtube.com/@axpsirm?si=i0QSm-0wDn9QQo8H'
         };
-        try { localStorage.setItem('blazeState', JSON.stringify(state)); } catch(e) {}
-    }
 
-    function loadState() {
-        try {
-            const saved = localStorage.getItem('blazeState');
-            if (!saved) return false;
-            const state = JSON.parse(saved);
-            tgVisited = state.tgVisited || false;
-            ytVisited = state.ytVisited || false;
-            keyAccepted = state.keyAccepted || false;
-            acceptedKey = state.acceptedKey || null;
-            if (tgVisited) {
+        function buildBlazeDatabase() {
+            FILE_DATABASE = {};
+            const adminData = loadBlazeAdminData();
+            
+            if (adminData && adminData.keys && adminData.keys.length > 0) {
+                adminData.keys.forEach(k => {
+                    if (k.key) {
+                        FILE_DATABASE[k.key] = {
+                            name: k.name || 'unknown.bin',
+                            size: k.size || '0 MB',
+                            url: k.url || '',
+                            content: "AXP BLAZE | " + (k.name || 'unknown')
+                        };
+                    }
+                });
+                console.log('🔴 Loaded ' + Object.keys(FILE_DATABASE).length + ' keys from BLAZE Admin');
+                if (adminData.channels) {
+                    CHANNEL_LINKS.telegram = adminData.channels.telegram || CHANNEL_LINKS.telegram;
+                    CHANNEL_LINKS.youtube = adminData.channels.youtube || CHANNEL_LINKS.youtube;
+                }
+            } else {
+                FILE_DATABASE = {
+                    "BLZ001": { name: "blaze_video1_file.zip", size: "3.2 MB", url: "", content: "AXP BLAZE | VIDEO 1" },
+                    "BLZ002": { name: "blaze_video2_file.pdf", size: "1.8 MB", url: "", content: "AXP BLAZE | VIDEO 2" },
+                    "BLZ003": { name: "blaze_video3_file.py", size: "0.5 MB", url: "", content: "AXP BLAZE | VIDEO 3" },
+                    "BLZ004": { name: "blaze_video4_file.xml", size: "0.2 MB", url: "", content: "AXP BLAZE | VIDEO 4" },
+                    "BLZ005": { name: "blaze_video5_file.exe", size: "5.1 MB", url: "", content: "AXP BLAZE | VIDEO 5" },
+                    "BLZ006": { name: "blaze_video6_file.docx", size: "0.9 MB", url: "", content: "AXP BLAZE | VIDEO 6" },
+                    "BLZ007": { name: "blaze_video7_file.png", size: "2.4 MB", url: "", content: "AXP BLAZE | VIDEO 7" },
+                    "BLZ008": { name: "blaze_video8_file.rar", size: "4.7 MB", url: "", content: "AXP BLAZE | VIDEO 8" },
+                    "BLZ009": { name: "blaze_video9_file.apk", size: "6.3 MB", url: "", content: "AXP BLAZE | VIDEO 9" },
+                    "BLZ010": { name: "blaze_video10_file.dat", size: "0.1 MB", url: "", content: "AXP BLAZE | VIDEO 10" }
+                };
+                console.log('⚠️ No BLAZE admin data found, using default keys');
+            }
+        }
+
+        // ==================== 🛡️ STATE MANAGEMENT ====================
+        function saveBlazeState() {
+            const state = {
+                tgVisited: tgVisited, ytVisited: ytVisited, currentPage: currentPage,
+                enteredKey: document.getElementById('fileKeyInput') ? document.getElementById('fileKeyInput').value : '',
+                keyAccepted: keyAccepted, acceptedKey: acceptedKey
+            };
+            try { localStorage.setItem('blazeState', JSON.stringify(state)); } catch(e) {}
+        }
+
+        function loadBlazeState() {
+            try {
+                const saved = localStorage.getItem('blazeState');
+                if (!saved) return false;
+                const state = JSON.parse(saved);
+                tgVisited = state.tgVisited || false;
+                ytVisited = state.ytVisited || false;
+                keyAccepted = state.keyAccepted || false;
+                acceptedKey = state.acceptedKey || null;
+                if (tgVisited) { document.getElementById('tgStatus').textContent = '✅ JOINED'; document.getElementById('tgStatus').classList.add('verified'); }
+                if (ytVisited) { document.getElementById('ytStatus').textContent = '✅ SUBSCRIBED'; document.getElementById('ytStatus').classList.add('verified'); }
+                checkChannels();
+                if (state.enteredKey && document.getElementById('fileKeyInput')) {
+                    document.getElementById('fileKeyInput').value = state.enteredKey;
+                    if (state.keyAccepted && state.acceptedKey && FILE_DATABASE[state.acceptedKey]) {
+                        currentFile = FILE_DATABASE[state.acceptedKey];
+                        document.getElementById('displayFileName').textContent = currentFile.name;
+                        document.getElementById('displayFileSize').textContent = 'SIZE: ' + currentFile.size;
+                        document.getElementById('displayFileKey').textContent = 'KEY: ' + state.acceptedKey;
+                        document.getElementById('keySuccess').style.display = 'block';
+                        document.getElementById('continueBtn3').disabled = false;
+                        document.getElementById('continueBtn3').textContent = '▸ CONTINUE';
+                    }
+                }
+                return true;
+            } catch(e) { return false; }
+        }
+
+        // ==================== NAVIGATION ====================
+        let currentPage = 1, tgVisited = false, ytVisited = false, keyAccepted = false, acceptedKey = null, currentFile = null;
+
+        function goToPage(pageNum) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            const target = document.getElementById('page' + pageNum);
+            if (target) {
+                target.classList.add('active');
+                currentPage = pageNum;
+                saveBlazeState();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        // ==================== DOWNLOAD SYSTEM ====================
+        function startDownloadProcess() {
+            if (!currentFile) { alert("ERROR: No file selected!"); return; }
+            
+            const progressContainer = document.getElementById('progressContainer');
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            
+            progressContainer.style.display = 'block';
+            let progress = 0;
+            
+            const interval = setInterval(() => {
+                progress += Math.random() * 15 + 5;
+                if (progress > 100) progress = 100;
+                progressFill.style.width = progress + '%';
+                progressText.textContent = '[ DECRYPTING... ' + Math.floor(progress) + '% ]';
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    progressText.textContent = '[ ✅ DOWNLOAD COMPLETE ]';
+                    setTimeout(() => { 
+                        performDownload();
+                        if (acceptedKey) logBlazeUser(acceptedKey);
+                    }, 500);
+                }
+            }, 250);
+        }
+
+        function performDownload() {
+            if (!currentFile) return;
+            if (currentFile.url) {
+                const a = document.createElement('a');
+                a.href = currentFile.url; a.download = currentFile.name;
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            } else {
+                const blob = new Blob([currentFile.content], { type: 'application/octet-stream' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = currentFile.name;
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+            setTimeout(() => { goToPage(5); }, 500);
+        }
+
+        // ==================== CHANNEL VERIFICATION ====================
+        function markVisited(channel) {
+            if (channel === 'tg') {
+                window.open(CHANNEL_LINKS.telegram, '_blank');
+                tgVisited = true;
                 document.getElementById('tgStatus').textContent = '✅ JOINED';
                 document.getElementById('tgStatus').classList.add('verified');
-            }
-            if (ytVisited) {
+                saveBlazeState();
+                checkChannels();
+                logBlazeUser('telegram_click');
+            } else if (channel === 'yt') {
+                window.open(CHANNEL_LINKS.youtube, '_blank');
+                ytVisited = true;
                 document.getElementById('ytStatus').textContent = '✅ SUBSCRIBED';
                 document.getElementById('ytStatus').classList.add('verified');
+                saveBlazeState();
+                checkChannels();
+                logBlazeUser('youtube_click');
             }
-            checkChannels();
-            if (state.enteredKey && document.getElementById('fileKeyInput')) {
-                document.getElementById('fileKeyInput').value = state.enteredKey;
-                if (state.keyAccepted && state.acceptedKey && FILE_DATABASE[state.acceptedKey]) {
-                    currentFile = FILE_DATABASE[state.acceptedKey];
-                    document.getElementById('displayFileName').textContent = currentFile.name;
-                    document.getElementById('displayFileSize').textContent = 'SIZE: ' + currentFile.size;
-                    document.getElementById('displayFileKey').textContent = 'KEY: ' + state.acceptedKey;
-                    document.getElementById('keySuccess').style.display = 'block';
-                    document.getElementById('continueBtn3').disabled = false;
-                    document.getElementById('continueBtn3').textContent = '▸ CONTINUE';
+        }
+
+        function checkChannels() {
+            const btn = document.getElementById('continueBtn2');
+            if (tgVisited && ytVisited) { btn.disabled = false; btn.textContent = '▸ CONTINUE'; }
+            else { btn.disabled = true; btn.textContent = '⛔ JOIN TO UNLOCK'; }
+        }
+
+        // ==================== 🔴 BLAZE USER LOG 🔴 ====================
+        function logBlazeUser(keyUsed) {
+            try {
+                const adminData = loadBlazeAdminData();
+                if (adminData) {
+                    fetch('https://api.ipify.org?format=json')
+                        .then(r => r.json())
+                        .then(data => {
+                            const ip = data.ip || 'unknown';
+                            if (!adminData.users) adminData.users = [];
+                            adminData.users.push({
+                                ip: ip, key: keyUsed,
+                                time: new Date().toLocaleString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
+                            });
+                            localStorage.setItem('blazeAdminData', JSON.stringify(adminData));
+                        })
+                        .catch(() => {});
                 }
-            }
-            return state;
-        } catch(e) { return false; }
-    }
-
-    // ==================== NAVIGATION ====================
-    let currentPage = 1;
-    let tgVisited = false;
-    let ytVisited = false;
-    let keyAccepted = false;
-    let acceptedKey = null;
-    let currentFile = null;
-
-    function goToPage(pageNum) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        const target = document.getElementById('page' + pageNum);
-        if (target) {
-            target.classList.add('active');
-            currentPage = pageNum;
-            if (pageNum === 4 && currentFile) {
-                document.getElementById('downloadFileName').textContent = currentFile.name;
-                document.getElementById('downloadFileInfo').textContent = 'SIZE: ' + currentFile.size + ' | KEY: ' + acceptedKey;
-            }
-            saveState();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            } catch(e) {}
         }
-    }
 
-    // ==================== 🔥 AD SYSTEM - SIMPLE 🔥 ====================
-    let timers = {};
-    let counts = {};
-    let ready = {};
+        // ==================== KEY CHECK SYSTEM ====================
+        function checkFileKey() {
+            const input = document.getElementById('fileKeyInput');
+            const error = document.getElementById('keyError');
+            const success = document.getElementById('keySuccess');
+            const btn = document.getElementById('continueBtn3');
+            const key = input.value.trim().toUpperCase();
 
-    function startAdBanner(page) {
-        const banner = document.getElementById('adBanner' + page);
-        const timer = document.getElementById('adTimer' + page);
-        const btnMap = {2: 'continueBtn2', 3: 'continueBtn3', 4: 'downloadBtn'};
-        const btn = document.getElementById(btnMap[page]);
-        
-        if (timers[page]) clearInterval(timers[page]);
-        
-        counts[page] = 5;
-        ready[page] = false;
-        banner.style.display = 'block';
-        timer.textContent = '5';
-        btn.disabled = true;
-        btn.textContent = '⏳ ' + counts[page] + 's';
-        
-        timers[page] = setInterval(function() {
-            counts[page]--;
-            timer.textContent = counts[page];
-            btn.textContent = '⏳ ' + counts[page] + 's';
+            if (key.length === 0) {
+                error.style.display = 'none'; success.style.display = 'none';
+                btn.disabled = true; btn.textContent = '⛔ ENTER KEY FIRST';
+                keyAccepted = false; acceptedKey = null; currentFile = null;
+                saveBlazeState(); return;
+            }
+
+            if (FILE_DATABASE[key]) {
+                error.style.display = 'none'; success.style.display = 'block';
+                btn.disabled = false; btn.textContent = '▸ CONTINUE';
+                keyAccepted = true; acceptedKey = key; currentFile = FILE_DATABASE[key];
+                document.getElementById('displayFileName').textContent = currentFile.name;
+                document.getElementById('displayFileSize').textContent = 'SIZE: ' + currentFile.size;
+                document.getElementById('displayFileKey').textContent = 'KEY: ' + key;
+                saveBlazeState();
+            } else {
+                error.style.display = 'block'; success.style.display = 'none';
+                btn.disabled = true; btn.textContent = '⛔ INVALID KEY';
+                keyAccepted = false; acceptedKey = null; currentFile = null;
+                document.getElementById('displayFileName').textContent = '🔒 protected_file.bin';
+                document.getElementById('displayFileSize').textContent = 'SIZE: UNKNOWN';
+                document.getElementById('displayFileKey').textContent = 'KEY: ---';
+                saveBlazeState();
+            }
+        }
+
+        // ==================== RESET ====================
+        function fullReset() {
+            localStorage.removeItem('blazeState');
+            tgVisited = false; ytVisited = false; keyAccepted = false;
+            acceptedKey = null; currentFile = null;
             
-            if (counts[page] <= 0) {
-                clearInterval(timers[page]);
-                timer.textContent = '0';
-                btn.textContent = (page === 4) ? '⬇ DOWNLOAD NOW' : '▸ CONTINUE';
-                btn.disabled = false;
-                ready[page] = true;
-            }
-        }, 1000);
-    }
-
-    function onContinue(fromPage, toPage) {
-        if (!ready[fromPage]) return;
-        ready[fromPage] = false;
-        document.getElementById('adBanner' + fromPage).style.display = 'none';
-        
-        // 🔥 FIRE AD 🔥
-        fireAd();
-        
-        goToPage(toPage);
-    }
-
-    function onDownload() {
-        if (!ready[4]) return;
-        if (!currentFile) { alert('ERROR: No file selected!'); return; }
-        
-        ready[4] = false;
-        document.getElementById('adBanner4').style.display = 'none';
-        
-        // 🔥 FIRE AD 🔥
-        fireAd();
-        
-        startDownload();
-    }
-
-    function fireAd() {
-        var s = document.createElement('script');
-        s.src = 'https://pl30206122.effectivecpmnetwork.com/32/f1/52/32f152ee06a28904513a0339c0a2f618.js';
-        document.body.appendChild(s);
-        
-        try {
-            var w = window.open('', '_blank');
-            if (w) {
-                w.document.write('<html><body><script src="https://pl30206122.effectivecpmnetwork.com/32/f1/52/32f152ee06a28904513a0339c0a2f618.js"><\/script></body></html>');
-                w.document.close();
-            }
-        } catch(e) {}
-    }
-
-    // ==================== CHANNELS ====================
-    function markVisited(channel) {
-        if (channel === 'tg') {
-            window.open(CHANNEL_LINKS.telegram, '_blank');
-            tgVisited = true;
-            document.getElementById('tgStatus').textContent = '✅ JOINED';
-            document.getElementById('tgStatus').classList.add('verified');
-            saveState();
-            checkChannels();
-        } else if (channel === 'yt') {
-            window.open(CHANNEL_LINKS.youtube, '_blank');
-            ytVisited = true;
-            document.getElementById('ytStatus').textContent = '✅ SUBSCRIBED';
-            document.getElementById('ytStatus').classList.add('verified');
-            saveState();
-            checkChannels();
-        }
-    }
-
-    function checkChannels() {
-        const btn = document.getElementById('continueBtn2');
-        if (tgVisited && ytVisited) {
-            btn.disabled = false;
-            btn.textContent = '▸ CONTINUE';
-            startAdBanner(2);
-        } else {
-            btn.disabled = true;
-            btn.textContent = '⛔ JOIN TO UNLOCK';
-        }
-    }
-
-    // ==================== KEY CHECK ====================
-    function checkFileKey() {
-        const input = document.getElementById('fileKeyInput');
-        const error = document.getElementById('keyError');
-        const success = document.getElementById('keySuccess');
-        const btn = document.getElementById('continueBtn3');
-        const key = input.value.trim().toUpperCase();
-
-        if (key.length === 0) {
-            error.style.display = 'none';
-            success.style.display = 'none';
-            btn.disabled = true;
-            btn.textContent = '⛔ ENTER KEY FIRST';
-            keyAccepted = false;
-            acceptedKey = null;
-            currentFile = null;
-            saveState();
-            return;
-        }
-
-        if (FILE_DATABASE[key]) {
-            error.style.display = 'none';
-            success.style.display = 'block';
-            btn.disabled = false;
-            btn.textContent = '▸ CONTINUE';
-            keyAccepted = true;
-            acceptedKey = key;
-            currentFile = FILE_DATABASE[key];
-            document.getElementById('displayFileName').textContent = currentFile.name;
-            document.getElementById('displayFileSize').textContent = 'SIZE: ' + currentFile.size;
-            document.getElementById('displayFileKey').textContent = 'KEY: ' + key;
-            saveState();
-            startAdBanner(3);
-        } else {
-            error.style.display = 'block';
-            success.style.display = 'none';
-            btn.disabled = true;
-            btn.textContent = '⛔ INVALID KEY';
-            keyAccepted = false;
-            acceptedKey = null;
-            currentFile = null;
-            document.getElementById('displayFileName').textContent = '🔥 protected_file.bin';
+            document.getElementById('tgStatus').textContent = 'NOT JOINED';
+            document.getElementById('tgStatus').classList.remove('verified');
+            document.getElementById('ytStatus').textContent = 'NOT SUBSCRIBED';
+            document.getElementById('ytStatus').classList.remove('verified');
+            const input = document.getElementById('fileKeyInput');
+            if (input) input.value = '';
+            document.getElementById('keyError').style.display = 'none';
+            document.getElementById('keySuccess').style.display = 'none';
+            document.getElementById('continueBtn2').disabled = true;
+            document.getElementById('continueBtn2').textContent = '⛔ JOIN TO UNLOCK';
+            document.getElementById('continueBtn3').disabled = true;
+            document.getElementById('continueBtn3').textContent = '⛔ ENTER KEY FIRST';
+            document.getElementById('downloadBtn').style.display = 'block';
+            document.getElementById('progressContainer').style.display = 'none';
+            document.getElementById('progressFill').style.width = '0%';
+            document.getElementById('displayFileName').textContent = '🔒 protected_file.bin';
             document.getElementById('displayFileSize').textContent = 'SIZE: UNKNOWN';
             document.getElementById('displayFileKey').textContent = 'KEY: ---';
-            saveState();
-        }
-    }
-
-    // ==================== DOWNLOAD ====================
-    function startDownload() {
-        if (!currentFile) return;
-        
-        const progressContainer = document.getElementById('progressContainer');
-        const progressFill = document.getElementById('progressFill');
-        const progressText = document.getElementById('progressText');
-
-        progressContainer.style.display = 'block';
-        let progress = 0;
-
-        const interval = setInterval(() => {
-            progress += Math.random() * 15 + 5;
-            if (progress > 100) progress = 100;
-            progressFill.style.width = progress + '%';
-            progressText.textContent = '[ DECRYPTING... ' + Math.floor(progress) + '% ]';
-
-            if (progress >= 100) {
-                clearInterval(interval);
-                progressText.textContent = '[ ✅ DOWNLOAD COMPLETE ]';
-                setTimeout(() => { performDownload(); }, 500);
-            }
-        }, 250);
-    }
-
-    function performDownload() {
-        if (!currentFile) return;
-        if (currentFile.url) {
-            var a = document.createElement('a');
-            a.href = currentFile.url;
-            a.download = currentFile.name;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        } else {
-            var blob = new Blob([currentFile.content], { type: 'application/octet-stream' });
-            var url = URL.createObjectURL(blob);
-            var a = document.createElement('a');
-            a.href = url;
-            a.download = currentFile.name;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-        setTimeout(() => { goToPage(5); }, 500);
-    }
-
-    // ==================== RESET ====================
-    function fullReset() {
-        localStorage.removeItem('blazeState');
-        tgVisited = false; ytVisited = false;
-        keyAccepted = false; acceptedKey = null; currentFile = null;
-        
-        document.getElementById('tgStatus').textContent = 'NOT JOINED';
-        document.getElementById('tgStatus').classList.remove('verified');
-        document.getElementById('ytStatus').textContent = 'NOT SUBSCRIBED';
-        document.getElementById('ytStatus').classList.remove('verified');
-        
-        var input = document.getElementById('fileKeyInput');
-        if (input) input.value = '';
-        
-        document.getElementById('keyError').style.display = 'none';
-        document.getElementById('keySuccess').style.display = 'none';
-        
-        document.getElementById('continueBtn2').disabled = true;
-        document.getElementById('continueBtn2').textContent = '⛔ JOIN TO UNLOCK';
-        document.getElementById('continueBtn3').disabled = true;
-        document.getElementById('continueBtn3').textContent = '⛔ ENTER KEY FIRST';
-        document.getElementById('downloadBtn').disabled = false;
-        document.getElementById('downloadBtn').textContent = '⬇ DOWNLOAD NOW';
-        document.getElementById('progressContainer').style.display = 'none';
-        document.getElementById('progressFill').style.width = '0%';
-        
-        document.getElementById('displayFileName').textContent = '🔥 protected_file.bin';
-        document.getElementById('displayFileSize').textContent = 'SIZE: UNKNOWN';
-        document.getElementById('displayFileKey').textContent = 'KEY: ---';
-        document.getElementById('downloadFileName').textContent = 'UNKNOWN';
-        document.getElementById('downloadFileInfo').textContent = 'BLAZE://secure/drop/';
-        
-        document.querySelectorAll('.ad-banner').forEach(b => b.style.display = 'none');
-        
-        for (var p in timers) { clearInterval(timers[p]); ready[p] = false; counts[p] = 5; }
-        
-        goToPage(1);
-    }
-
-    // ==================== INIT ====================
-    window.addEventListener('DOMContentLoaded', function() {
-        buildFileDatabase();
-        loadChannelLinks();
-        
-        tgVisited = false; ytVisited = false;
-        keyAccepted = false; acceptedKey = null; currentFile = null;
-        
-        document.getElementById('tgStatus').textContent = 'NOT JOINED';
-        document.getElementById('tgStatus').classList.remove('verified');
-        document.getElementById('ytStatus').textContent = 'NOT SUBSCRIBED';
-        document.getElementById('ytStatus').classList.remove('verified');
-        document.getElementById('continueBtn2').disabled = true;
-        document.getElementById('continueBtn2').textContent = '⛔ JOIN TO UNLOCK';
-        document.getElementById('continueBtn3').disabled = true;
-        document.getElementById('continueBtn3').textContent = '⛔ ENTER KEY FIRST';
-        document.getElementById('downloadBtn').disabled = false;
-        document.getElementById('downloadBtn').textContent = '⬇ DOWNLOAD NOW';
-        document.getElementById('progressContainer').style.display = 'none';
-        document.getElementById('displayFileName').textContent = '🔥 protected_file.bin';
-        document.getElementById('displayFileSize').textContent = 'SIZE: UNKNOWN';
-        document.getElementById('displayFileKey').textContent = 'KEY: ---';
-        document.getElementById('downloadFileName').textContent = 'UNKNOWN';
-        document.getElementById('downloadFileInfo').textContent = 'BLAZE://secure/drop/';
-        
-        document.querySelectorAll('.ad-banner').forEach(b => b.style.display = 'none');
-        
-        var state = loadState();
-        if (state && state.currentPage && state.currentPage > 1) {
-            goToPage(state.currentPage);
-        } else {
             goToPage(1);
         }
-    });
-</script>
+
+        // ==================== 🔴 FINAL INIT 🔴 ====================
+        window.addEventListener('DOMContentLoaded', function() {
+            buildBlazeDatabase();
+            
+            tgVisited = false; ytVisited = false; keyAccepted = false;
+            acceptedKey = null; currentFile = null;
+            
+            document.getElementById('tgStatus').textContent = 'NOT JOINED';
+            document.getElementById('tgStatus').classList.remove('verified');
+            document.getElementById('ytStatus').textContent = 'NOT SUBSCRIBED';
+            document.getElementById('ytStatus').classList.remove('verified');
+            document.getElementById('continueBtn2').disabled = true;
+            document.getElementById('continueBtn2').textContent = '⛔ JOIN TO UNLOCK';
+            document.getElementById('continueBtn3').disabled = true;
+            document.getElementById('continueBtn3').textContent = '⛔ ENTER KEY FIRST';
+            document.getElementById('downloadBtn').style.display = 'block';
+            document.getElementById('progressContainer').style.display = 'none';
+            document.getElementById('displayFileName').textContent = '🔒 protected_file.bin';
+            document.getElementById('displayFileSize').textContent = 'SIZE: UNKNOWN';
+            document.getElementById('displayFileKey').textContent = 'KEY: ---';
+            
+            const stateLoaded = loadBlazeState();
+            if (stateLoaded && currentPage > 1) { goToPage(currentPage); }
+            else { goToPage(1); }
+            
+            console.log('🔴 AXP BLAZE | BLAZE Admin Connected | Keys: ' + Object.keys(FILE_DATABASE).length);
+        });
+    </script>
+
 </body>
 </html>
